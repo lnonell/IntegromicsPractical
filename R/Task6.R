@@ -1,7 +1,7 @@
-#Task 1
+#Task 6
 #Purpose
 #input
 #output
-task1<-function(){
+task6<-function(){
   return()
 }

@@ -1,5 +1,5 @@
 #Task 1
-#Purpose
+#Purpose of the task
 #input
 #output
 task1<-function(){

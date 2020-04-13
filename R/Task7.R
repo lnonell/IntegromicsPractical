@@ -1,4 +1,4 @@
-#Task 7 Comentari
+#Task 7 Comentaris
 #Purpose
 #input
 #output

@@ -2,7 +2,6 @@
 #Purpose
 #input
 #output
-#hello3
 task6<-function(){
   return()
 }

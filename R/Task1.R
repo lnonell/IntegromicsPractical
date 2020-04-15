@@ -1,7 +1,7 @@
 #Task 1 Monica Sanchez
 #Purpose of the task: Prepare clinical data
-#input: TCGA cancer code (TCGA biolinks)
-#output: Dataframe with samples, stageI or IV, years smoked
+#input: TCGA cancer code
+#output: Dataframe with samples barcode, stageI or IV, years smoked
 
 task1<-function(cancer_type){
   
@@ -40,9 +40,6 @@ task1<-function(cancer_type){
     
     clinical.common.patients <- merge(clinical.data, common.patients, by = "submitter_id")
     
-    dim(clinical.data)
-    dim(clinical.common.patients)
-    
     ###
     #3 Select patients with tumoral stage I and IV
     ###
@@ -53,7 +50,8 @@ task1<-function(cancer_type){
     ys_col <- grep("^years_smoked", colnames(clinical.common.patients))
     
     #To get up to 10 patients with stage I and 10 patients with stage II
-    stageI <- clinical.common.patients[grep("stage i$|stage ia|stage ib", clinical.common.patients$tumor_stage),c(id_col, ts_col, ys_col)]
+    stageI <- clinical.common.patients[grep("stage i$|stage ia|stage ib", clinical.common.patients$tumor_stage),
+                                       c(id_col, ts_col, ys_col)]
     
     if (nrow(stageI) >= 10){
       stageI <- stageI[1:10,]
@@ -81,6 +79,7 @@ task1<-function(cancer_type){
     colnames(clinical.table) <- c("barcode", "tumor_stage", "years_smoked")
 
 return(clinical.table)
+    
 }
 
 
@@ -90,7 +89,7 @@ return(clinical.table)
 #########################
 
 ###
-#0 INPUT: cancer type
+#0 INPUT: cancer_type
 ###
 
 #To get all the project id's from TCGA

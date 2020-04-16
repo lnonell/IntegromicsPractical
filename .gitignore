@@ -2,3 +2,5 @@
 .Rproj.user/
 MANIFEST.txt
 GDCdata/
+
+.DS_store

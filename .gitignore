@@ -2,5 +2,9 @@
 .Rproj.user/
 MANIFEST.txt
 GDCdata/
+<<<<<<< HEAD
+.RData
+=======
 
 .DS_store
+>>>>>>> bbc3704bdd13345718ba6d7b883d4a92017e67ce

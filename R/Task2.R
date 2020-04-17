@@ -3,43 +3,51 @@
 #input: dataframe of function1 
 #output: dataframe with normalized expression data 
 
+##########################################################################
 # PROOF function2
 ##########################################################################
 library(TCGAbiolinks)
 library(edgeR)
 library(SummarizedExperiment)
-
-task2<-function(){
-  return()
-}
-
-## defining variable of interest from the dataframe of function1 : 
-barcode <- LUAD.table$barcode
+library(biomaRt)
+##########################################################################
 cancer_type <- "TCGA-LUAD"
+clinical.table$barcode <- barcode 
 
-# download quey.rna 
-query.rna <- GDCquery(project = cancer_type, 
+task2<-function(cancer_type, clinical.table){
+  ########################################################################
+  # download quey.rna 
+  query.rna <- GDCquery(project = cancer_type, 
                       barcode = barcode,
                       data.category = "Transcriptome Profiling", 
                       data.type = "Gene Expression Quantification", 
                       workflow.type = "HTSeq - FPKM-UQ")
-
-getResults(query.rna) #data that will be downloaded
-GDCdownload(query.rna)
-
-TCGA.exp <- GDCprepare(query.rna) #this is creating the R object
-
-# subset sample
-samples.exp <- substr(colnames(TCGA.exp),1,12)
-length(samples.exp) # we obtain 23 samples instead of 20, some there are some replicates: 
-length(unique(samples.exp))
-
-s <- colnames(TCGA.exp)[!duplicated(substring(colnames(TCGA.exp), 1, 12))]
-
-# matrix with cols = samples and rows = genes
-data <- assay(TCGA.exp)
-
-# to normalize data with edger we first created a DEGlist and then we used the function calcNormFactors:
-data <- DGEList(data)
-tmm <- calcNormFactors(data)
+  getResults(query.rna) #data that will be downloaded
+  GDCdownload(query.rna)
+  TCGA.exp <- GDCprepare(query.rna) #this is creating the R object
+  ########################################################################
+  # Annotation 
+  ensembl <- useMart("ensembl")
+  mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
+  annot_df <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"), 
+                  filters = "ensembl_gene_id", values = rownames(TCGA.exp), mart = mart)
+  annot_df <- annot_df[order(annot_df[,2]),] #order by start position
+  genes <- annot_df[order(annot_df[,1]),] #order by chromosome
+  
+  ########################################################################
+  # Create matrix of interest and check for duplicates: 
+  data <- assay(TCGA.exp)
+  patient <- substr(colnames(data),1,12)
+  
+  if(any(duplicated(patient)) == TRUE){
+  dupl <- which(duplicated(patient))
+  data <- data[,-dupl]
+  }
+  ########################################################################
+  # Normalization: 
+  data <- DGEList(data)
+  norm_data <- calcNormFactors(data)
+  expression.table <- as.data.frame(norm_data$counts)
+  return(expression.table)
+}
 

@@ -1,12 +1,11 @@
-#Task 3 by Ariadna Cilleros 
-#Purpose: Download, treat and prepare CNV data files from TCGA.
-#input: Dataframe with the metadata of the samples/patients and TCGA project name (ex: TCGA-ACC)
-#output: Dataframe with the CNV data summarized by gene and patient. The data has been converted
-#         to have suitable values (-1, 0, 1) to interpret the CN alterations. 
+#Task 3: Ariadna Cilleros Portet  
+#Purpose: Download, preapre and treat CNV data.
+#input: Dataframe with the metadata realted to our samples (output task1)
+#output: Dataframe with the CNV data related to each gene and grouped by patient. 
+#         The data has been converted to be more suitable: -1, 0, +1.
 
 task3<- function(cancer, df_samples){
   
-  #check arguments
   stopifnot(is.character(cancer))
   stopifnot(is.data.frame(df_samples))
   

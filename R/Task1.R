@@ -3,6 +3,8 @@
 #input: TCGA cancer code
 #output: Dataframe with samples barcode, stageI or IV, years smoked
 
+class(cancer_type)
+
 task1<-function(cancer_type){
   
     #load library
@@ -12,6 +14,11 @@ task1<-function(cancer_type){
     #1 GET patients with rna, cn and met data
     ###
     
+    if (class(cancer_type) != "character"){
+      stop(print("The input 'cancer_type' must be the TCGA cancer code. E.g.: 'TCGA-LUAD'"))
+    }
+  
+  
     query.rna <- GDCquery(project = cancer_type, 
                           data.category = "Transcriptome Profiling", 
                           data.type = "Gene Expression Quantification", 
@@ -96,7 +103,6 @@ return(clinical.table)
 all_cancer_list <- TCGAbiolinks:::getGDCprojects()$project_id
 cancer_list <- all_cancer_list[grep("ESCA|HNSC|KICH|KIRC|KIRP|LUAD|LUSC|SKCM|STAD", all_cancer_list)]
 cancer_list
-
 
 LUAD.table <- task1(cancer_type = "TCGA-LUAD")
 KIRK.table <- task1(cancer_type = "TCGA-KIRC")

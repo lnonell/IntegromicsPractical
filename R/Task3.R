@@ -5,7 +5,8 @@
 #         The data has been converted to be more suitable: -1, 0, +1.
 
 task3<- function(cancer, df_samples){
-  
+
+  #check arguments  
   stopifnot(is.character(cancer))
   stopifnot(is.data.frame(df_samples))
   

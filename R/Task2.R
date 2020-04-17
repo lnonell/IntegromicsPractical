@@ -42,4 +42,4 @@ data <- assay(TCGA.exp)
 # to normalize data with edger we first created a DEGlist and then we used the function calcNormFactors:
 data <- DGEList(data)
 tmm <- calcNormFactors(data)
-
+.

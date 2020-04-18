@@ -121,5 +121,5 @@ task3<- function(cancer, df_samples){
   
   for (i in 1:(dim(df_CN)[2])) df_CN[,i] <- as.integer(ifelse(2^(as.numeric(df_CN[,i])+1)>2.4,1,ifelse(2^(as.numeric(df_CN[,i])+1)<1.6,-1,0)))
   
-  return(data.frame(df_CN, stringsAsFactors = FALSE))
+  return(data.matrix(data.frame(df_CN, stringsAsFactors = FALSE)))
 }

@@ -1,6 +1,6 @@
 #Task 3: Ariadna Cilleros Portet  
 #Purpose: Download, preapre and treat CNV data.
-#input: Dataframe with the metadata realted to our samples (output task1)
+#input: Dataframe with the metadata realted to our samples (output task1) and TCGA cancer type (ex: TCGA-KIRC)
 #output: Dataframe with the CNV data related to each gene and grouped by patient. 
 #         The data has been converted to be more suitable: -1, 0, +1.
 

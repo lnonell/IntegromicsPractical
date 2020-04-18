@@ -3,8 +3,6 @@
 #input: TCGA cancer code
 #output: Dataframe with samples barcode, stageI or IV, years smoked
 
-class(cancer_type)
-
 task1<-function(cancer_type){
   
     #load library

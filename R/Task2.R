@@ -54,10 +54,10 @@ task2<-function(cancer_type, clinical.table){
   # 3. Create matrix of interest and check for duplicates: 
   ########################################################################
 
-  patient <- substr(colnames(sub_data),1,12)
+  colnames(sub_data) <- substr(colnames(sub_data),1,12)
   
-  if(any(duplicated(patient)) == TRUE){
-  dupl <- which(duplicated(patient))
+  if(any(duplicated(colnames(sub_data))) == TRUE){
+  dupl <- which(duplicated(colnames(sub_data)))
   sub_data <- sub_data[,-dupl]
   }
   

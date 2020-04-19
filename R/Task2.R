@@ -9,8 +9,6 @@
 
 ## Example of cancer type: 
 cancer_type <- "TCGA-LUAD"
-## Define barcode variable before using the function, from the clinical.table obtained by function1:
-barcode <- LUAD.table$barcode # clinical table obtained form function1 
 
 task2<-function(cancer_type, clinical.table){
   #libraries

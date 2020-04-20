@@ -5,7 +5,7 @@
 #         The data has been converted to be more suitable: -1, 0, +1.
 
 task3<- function(cancer, df_samples){
-
+  
   #check arguments  
   stopifnot(is.character(cancer))
   stopifnot(is.data.frame(df_samples))
@@ -42,7 +42,7 @@ task3<- function(cancer, df_samples){
   ensembl <- useMart("ensembl")
   mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
   
-  #obtain the information chr, start, end and HGNC name of all the genes annotated in hg38
+  #obtain chr, start, end and HGNC name of all the genes annotated in hg38
   annot_df <- getBM(attributes = c("chromosome_name","start_position","end_position","hgnc_symbol"), 
                     filters = "entrezgene_id", values = genes$gene_id, mart = mart)
   
@@ -70,22 +70,28 @@ task3<- function(cancer, df_samples){
   df_ann$Patient<-gsub(pattern = "\\b.\\b", replacement = "-", substr(df_ann$Sample,1,12)) #create patient variable
   df_ann <- df_ann[,c(2,3,4,6,11,12)] #take chr, start, end, segment_mean, HGNC and Patient columns
   
-  ###########################
-  ##
-  ## STEP4: Group probes by gene and patient
-  ##
-  ###########################
   
+  #At this step we can face three problems: 1) having patients with more than one sample,
+  #2) having more than one segment that measures the same gene, and 3) having patients
+  #with missing values for a fragment. For the first problem, we will allways get the 
+  #first sample per patient, for the second we will perform the mean between the 
+  #different values assigned to the same gene and to the same sample, and for the third 
+  #problem, we will assign a 0, assuming that this patient hasn't have alteration on that gene. 
   
-  #group the genes by patients and if there is one gene not recorded for one patient, 
-  #we will assume that it has two copies in the same, which sould be the normal situation: 
-  
-  for ( i in unique(df_ann$GeneSymbol)){
-    gene.CN<-df_ann[df_ann$GeneSymbol==i,]
-    gene.CN.byPat <- gene.CN %>% group_by(Patient) %>% summarise(CN = mean(Segment_Mean, na.rm = TRUE))
-    colnames(gene.CN.byPat) <- c("Patient",i)
+  for (gene in unique(df_ann$GeneSymbol)){
+    gene.CN<-df_ann[df_ann$GeneSymbol==gene,]
+    gene.CN.byPat <- data.frame()
     
-    #1. In case that at least one patient is missing
+    #1) Discard duplicates
+    for (pat in unique(gene.CN$Patient)){
+      gene.CN.byPat <- rbind(gene.CN.byPat, gene.CN[gene.CN$Patient == pat, c(6,4)][1,])
+    }
+    
+    #2)Summarize the value of a gene doing the mean, taking in count that we are grouping per samples
+    gene.CN.byPat <- gene.CN.byPat %>% group_by(Patient) %>% summarise(CN = mean(Segment_Mean, na.rm = TRUE))
+    colnames(gene.CN.byPat) <- c("Patient",gene)
+    
+    #3) In case that at least one patient is missing
     if (dim(gene.CN.byPat)[1] != length(unique(df_ann$Patient))){ 
       patients <- setdiff(unique(df_ann$Patient), gene.CN.byPat$Patient) #variables with patients missing
       for (patient in patients){
@@ -94,15 +100,15 @@ task3<- function(cancer, df_samples){
       }
     }
     
-    #2. Make sure that we have the same order for patients in the data frame
+    #Make sure that we have the same order for patients in the data frame
     gene.CN.byPat <- as.data.frame(gene.CN.byPat[match(gene.CN.byPat$Patient, unique(df_ann$Patient)),]) 
     
-    #3. With the first gene we will create the dataframe to store all the results
-    if (i == unique(df_ann$GeneSymbol)[1]){ 
+    #With the first gene we will create the dataframe to store all the results
+    if (gene == unique(df_ann$GeneSymbol)[1]){ 
       df_CN <- data.frame(gene.CN.byPat[2], row.names = gene.CN.byPat$Patient) 
     }
     
-    #4. Add gene values for the rest of the genes
+    #Add gene values for the rest of the genes
     else{
       df_CN <- cbind(df_CN, gene.CN.byPat[2]) 
     }
@@ -121,5 +127,6 @@ task3<- function(cancer, df_samples){
   
   for (i in 1:(dim(df_CN)[2])) df_CN[,i] <- as.integer(ifelse(2^(as.numeric(df_CN[,i])+1)>2.4,1,ifelse(2^(as.numeric(df_CN[,i])+1)<1.6,-1,0)))
   
-  return(data.matrix(data.frame(df_CN, stringsAsFactors = FALSE)))
+  return(data.matrix(data.frame(df_CN, stringsAsFactors = FALSE))) #let's make sure that we get a numeric matrix
+  
 }

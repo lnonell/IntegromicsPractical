@@ -67,7 +67,7 @@ task3<- function(cancer, df_samples){
   #overlap the annotation with our CNV probes
   hits <- findOverlaps(genes_GR, df_GR, type="within") #hits found
   df_ann <- cbind(TCGA.CN[subjectHits(hits),],genes[queryHits(hits),]) 
-  df_ann$Patient<-substr(df_ann$Sample,1,12) #create patient variable
+  df_ann$Patient<-gsub(pattern = "\\b.\\b", replacement = "-", substr(df_ann$Sample,1,12)) #create patient variable
   df_ann <- df_ann[,c(2,3,4,6,11,12)] #take chr, start, end, segment_mean, HGNC and Patient columns
   
   ###########################

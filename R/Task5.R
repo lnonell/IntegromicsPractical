@@ -5,76 +5,72 @@
 # samples in columns and genes (HUGO Symbol) in rows containing the beta values mean of each gene and sample (methilation data).
 #Output: data.frame with good correlations between data.frames (in absolute value >0.67)
 
-task5<-function(dataframe1, dataframe2, method){
-  
+#### FALTAN PLOTS Y PDF ####
+
+task5<-function(df_mRNA, df_other, df_samples){
   
   #check arguments  
-  stopifnot(is.data.frame(dataframe1))
-  stopifnot(is.data.frame(dataframe2))
+  stopifnot(is.data.frame(df_mRNA))
+  stopifnot(is.data.frame(df_other))
+  stopifnot(is.data.frame(df_samples))
+  
   #...
-  return(correlations)
-}
-
-df1 <- data.frame(matrix(rnorm(20), nrow=10, ncol = 10))
-df2 <- data.frame(matrix(rnorm(30), nrow=10, ncol = 10))
-
-
-cna_driven_genes <- find_cna_driven_gene( gene_cna=KIRP.cnv, gene_exp=KIRP.exp, gain_prop =0.67, loss_prop = 0.67,
-                                          progress = TRUE, parallel = FALSE)
-
-cor.test(df1, df2, method = "spearman")
-
-correlations <- cor(t(df1), t(df2), method = "spearman")
-
-
-cor.test(x = df1,y = df2,method = "spearman", ci = FALSE)
-
-aa <- correlation(x = df1, y = df2, method = "spearman", cutoff = 0.67)
-
-
-A <- as.matrix(df1)
-B <- as.matrix(df2)
-sapply(seq.int(dim(A)[1]), function(i) cor.test(A[1,], B[1,]))
-unlist(a)
-
-dm1 <- data.matrix(df1)
-dm2 <- data.matrix(df2)
-cc <- cor.test(dm1, dm2, method = "spearman")
-cbind(cc$estimate,cc$p.value)
-
-
-
-#### for sorting the results
-targets <- correlations[correlations > 0.5 , ]
-
-function(col2, col1) {
-  cc <- cor.test(col2, col1, method = "spearman")
-  cbind(cc$estimate,cc$p.value)
-}
-
-
-for (i in miRNAs){
-  print(i)
-  miRNA.genes<-miRNAGenes(i)
-  miRNA.genes.deg<-intersect(miRNA.genes,mRNAs)
-  #now correlations 
-  lng<-length(miRNA.genes.deg)
-  if (lng>0){
-    cor.rho<-array(NA,lng)
-    cor.pval<-array(NA,lng)
-    miRNA.id<-rownames(res.miRNA[res.miRNA$miRNA==i,])
-    y=as.vector(data.miRNA[miRNA.id,])
-    for (j in 1:lng){
-      mRNA<-miRNA.genes.deg[j]
-      mRNA.id<-rownames(res.mRNA[!is.na(res.mRNA$Symbol) & res.mRNA$Symbol==mRNA,])[1]  
-      x=as.vector(data.mRNA[mRNA.id,])
-      cor<-cor.test(x,y, method = "spearman",exact=FALSE)
-      cor.pval[j]<-cor$p.value
-      cor.rho[j]<-cor$estimate 
-      plot(x,y,main=mRNA,xlab="log2RMA expression",ylab="log2miRMA expression",type="p",xlim=c(0,16),ylim=c(0,16),col=cols,pch=pchs,cex=0.8)
-      fit <- lm(y ~ x)
-      abline(fit, col="chartreuse3",xlim=c(0,16))        
+  colnames(df_mRNA) <- gsub("-",".",df_samples$barcode)
+  colnames(df_mRNA)==colnames(df_other)
+  df_mRNA.s<-df_mRNA[,colnames(df_other)]
+  (colnames(df_mRNA.s)==colnames(df_other))
+  
+  
+  common <- intersect(sort(rownames(df_other)),sort(rownames(df_mRNA.s)))
+  df_other.c <- df_other[common,] # give you common rows in df 1  
+  df_mRNA.c <- df_mRNA.s[common,] # give you common rows in df 2
+  
+  
+  resultsComb<-"/ResultsComb"
+  dir.create(file.path(getwd(), resultsComb),showWarnings = FALSE)
+  
+  for (i in df_mRNA.c){
+    #print(i)
+    #miRNA.genes<-miRNAGenes(i)
+    common.genes<-intersect(rownames(df_other.c),rownames(df_mRNA.c))
+    #now correlations 
+    lng<-length(common.genes)
+    if (lng>0){
+      cor.rho<-array(NA,lng)
+      cor.pval<-array(NA,lng)
+      #pdf(file.path(paste(getwd(),resultsComb,paste(mRNA,".corr.mRNA.miRNA.pdf",sep = ""),sep="/")))
+      for (j in 1:lng){
+        #miRNA.id<-rownames(df_other.c[df_other.c==j,])
+        mRNA<-common.genes[j]
+        mRNA.id<-rownames(df_mRNA.c[rownames(df_mRNA.c) == mRNA,])[1]
+        y <- as.vector(unlist(df_other.c[mRNA.id,]))
+        x <- as.vector(unlist(df_mRNA.c[mRNA.id,]))
+        cor<-cor.test(x,y, method = "spearman",exact=FALSE)
+        cor.pval[j]<-cor$p.value
+        cor.rho[j]<-cor$estimate 
+        #plot(x,y,main=mRNA,xlab="log2RMA expression",ylab="log2miRMA expression",type="p",xlim=c(0,16),ylim=c(0,16),cex=0.8)
+        #fit <- lm(y ~ x)
+        #abline(fit, col="chartreuse3",xlim=c(0,16))        
+      }
+      #dev.off()  #close pdf file
+      cor.table<-data.frame(row.names = common.genes,"Rho"=as.vector(cor.rho),"pval"=as.vector(cor.pval))
+      
+      qqplot(x = cor.table$pval,y = cor.table$Rho, main = "P-value vs Rho plot")
+      qqplot(x = cor.table$pval.adj,y = cor.table$Rho, main = "Adjusted P-value vs Rho plot")
+      
+      rownames(cor.table) <- common.genes
+      pval.adj <- p.adjust(cor.table$pval,method = "fdr")
+      cor.table$pval.adj <- as.vector(pval.adj)
+      cor.sig.table <- subset(x = cor.table, abs(cor.table$Rho) >= 0.67 & cor.table$pval.adj < 0.05)
+      
+      
+      #createSheet(wb, name = miRNA.id )
+      #write.csv2(cor.table,file=file.path(resultsComb,paste("final_corr_table.csv",sep=".")))
+      #writeWorksheet(wb,cor.table,sheet = miRNA.id, startRow = 1, startCol = 1, header=TRUE,rownames=NULL)
     }
-    cor.table<-data.frame("miRNA ID"=rep(miRNA.id,lng),"miRNA"=rep(i,lng),miRNA.genes.deg,"Rho"=as.vector(cor.rho),"pval"=as.vector(cor.pval))
-  }
-}  
+  }  
+  
+  return(cor.sig.table)
+}
+
+

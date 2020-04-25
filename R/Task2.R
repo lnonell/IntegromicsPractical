@@ -1,28 +1,30 @@
 #Task 2: Alessia Squitieri 
 #Purpose: Prepare expression data 
 #input: Dataframe of function1 and cancer code 
-#output: Dataframe with normalized expression data 
+#output: Dataframe with normalized (TMM) expression data 
 
 ##########################################################################
 # Function task2:
 ##########################################################################
 
-library(TCGAbiolinks)
-library(edgeR)
-library(SummarizedExperiment)
-library(biomaRt)
-
 ## Example of cancer type: 
 cancer_type <- "TCGA-LUAD"
-## Define barcode variable before using the function, from the clinical.table obtained by function1:
-barcode <- LUAD.table$barcode # clinical table obtained form function1 
 
 task2<-function(cancer_type, clinical.table){
+  #libraries
+  library(TCGAbiolinks)
+  library(edgeR)
+  library(SummarizedExperiment)
+  library(biomaRt)
+  
+  #check arguments  
+  stopifnot(is.character(cancer_type))
+  stopifnot(is.data.frame(clinical.table))
   ########################################################################
   # 1. Download quey.rna:
   ########################################################################
   query.rna <- GDCquery(project = cancer_type, 
-                      barcode = barcode,
+                      barcode = clinical.table$barcode,
                       data.category = "Transcriptome Profiling", 
                       data.type = "Gene Expression Quantification", 
                       workflow.type = "HTSeq - FPKM-UQ")
@@ -54,10 +56,10 @@ task2<-function(cancer_type, clinical.table){
   # 3. Create matrix of interest and check for duplicates: 
   ########################################################################
 
-  patient <- substr(colnames(sub_data),1,12)
+  colnames(sub_data) <- substr(colnames(sub_data),1,12)
   
-  if(any(duplicated(patient)) == TRUE){
-  dupl <- which(duplicated(patient))
+  if(any(duplicated(colnames(sub_data))) == TRUE){
+  dupl <- which(duplicated(colnames(sub_data)))
   sub_data <- sub_data[,-dupl]
   }
   
@@ -70,10 +72,16 @@ task2<-function(cancer_type, clinical.table){
   norm_data <- calcNormFactors(sub_data)
   expression.table <- as.data.frame(norm_data$counts)
   return(expression.table)
-}
+  }
 
   ####################### To test the function ###########################
-  LUAD.exp <- task2(cancer_type, clinical.table = LUAD.table)
-  LUSC.exp <- task2(cancer_type = cancer_type, clinical.table = LUSC.table)
-  SKCM.exp <- task2(cancer_type, clinical.table = SKCM.table)
+  LUAD.exp <- task2(cancer_type = "TCGA-LUAD" , clinical.table = LUAD.table)
+  KIRK.exp <- task2(cancer_type = "TCGA-KIRC", clinical.table = KIRK.table)
+  HNSC.exp <- task2(cancer_type = "TCGA-HNSC", clinical.table = HNSC.table)
+  STAD.exp <- task2(cancer_type = "TCGA-STAD", clinical.table = STAD.table )
+  LUSC.exp <- task2(cancer_type = "TCGA-LUSC", clinical.table = LUSC.table)
+  KICH.exp <- task2(cancer_type = "TCGA-KICH", clinical.table = KICH.table)
+  SKCM.exp  <- task2(cancer_type = "TCGA-SKCM", clinical.table = SKCM.table )
+  KIRP.exp <- task2(cancer_type = "TCGA-KIRP", clinical.table = KIRP.table)
+  ESCA.exp <- task2(cancer_type = "TCGA-ESCA", clinical.table = ESCA.table)
 

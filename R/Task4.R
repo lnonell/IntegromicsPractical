@@ -13,9 +13,10 @@ task4<-function(cancer, df_samples){
   ########################################################
   
   suppressPackageStartupMessages(library(TCGAbiolinks))
+  supressPackageStartupMessage(library(SummarizedExperiment))
+  suppressPackageStartupMessages(library(TxDb.Hsapiens.UCSC.hg38.knownGene))
   suppressPackageStartupMessages(library(GenomicFeatures))
   suppressPackageStartupMessages(library(tidyverse))
-  suppressPackageStartupMessages(library(TxDb.Hsapiens.UCSC.hg38.knownGene))
   suppressPackageStartupMessages(library(biomaRt))
   
   ########################################################
@@ -28,15 +29,25 @@ task4<-function(cancer, df_samples){
                          barcode = df_samples$barcode)
   GDCdownload(query.meth)
   TCGA.meth<- GDCprepare(query.meth)
+  data<-TCGA.meth@rowRanges
+  
+  testObj<-annotateGRanges(data,txdb)
   
   ########################################################
   #2. Annotation
   ########################################################
   
+  
+  # Create template to use in getBM(values=...)
+  txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
+  genes <- genes(txdb)
   ensembl <- useMart("ensembl")
   mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
-  annot <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol"), 
-                 filters = "ensembl_gene_id", values = rownames(TCGA.meth), mart = mart)
+  
+  #obtain chr, start, end and HGNC name of all the genes annotated in hg38
+  annot_df <- getBM(attributes = c("chromosome_name","start_position","end_position","hgnc_symbol"), 
+                    filters = "entrezgene_id", values = genes$gene_id, mart = mart)
+  
   
   return()
 }

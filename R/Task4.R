@@ -13,7 +13,7 @@ task4<-function(cancer, df_samples){
   ########################################################
   
   suppressPackageStartupMessages(library(TCGAbiolinks))
-  supressPackageStartupMessage(library(SummarizedExperiment))
+  suppressPackageStartupMessages(library(SummarizedExperiment))
   suppressPackageStartupMessages(library(TxDb.Hsapiens.UCSC.hg38.knownGene))
   suppressPackageStartupMessages(library(GenomicFeatures))
   suppressPackageStartupMessages(library(tidyverse))
@@ -29,7 +29,11 @@ task4<-function(cancer, df_samples){
                          barcode = df_samples$barcode)
   GDCdownload(query.meth)
   TCGA.meth<- GDCprepare(query.meth)
-  data<-TCGA.meth@rowRanges
+  data<-assay(TCGA.meth)
+  
+  phenodata<-TCGA.meth@elementMetadata
+  
+  test<-TCGA.meth@rowRanges
   
   testObj<-annotateGRanges(data,txdb) #test 
   

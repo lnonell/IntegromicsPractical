@@ -31,7 +31,7 @@ task4<-function(cancer, df_samples){
   TCGA.meth<- GDCprepare(query.meth)
   data<-TCGA.meth@rowRanges
   
-  testObj<-annotateGRanges(data,txdb)
+  testObj<-annotateGRanges(data,txdb) #test
   
   ########################################################
   #2. Annotation

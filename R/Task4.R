@@ -8,15 +8,20 @@ task4<-function(cancer, df_samples){
   stopifnot(is.character(cancer))
   stopifnot(is.data.frame(df_samples))
   
+  ########################################################
   #Libary loading
+  ########################################################
   
   suppressPackageStartupMessages(library(TCGAbiolinks))
+  supressPackageStartupMessage(library(SummarizedExperiment))
+  suppressPackageStartupMessages(library(TxDb.Hsapiens.UCSC.hg38.knownGene))
   suppressPackageStartupMessages(library(GenomicFeatures))
   suppressPackageStartupMessages(library(tidyverse))
-  suppressPackageStartupMessages(library(TxDb.Hsapiens.UCSC.hg38.knownGene))
   suppressPackageStartupMessages(library(biomaRt))
   
+  ########################################################
   #1. Downloading methylation data
+  ########################################################
   
   query.meth <- GDCquery(project = cancer, 
                          data.category = "DNA Methylation",
@@ -24,6 +29,25 @@ task4<-function(cancer, df_samples){
                          barcode = df_samples$barcode)
   GDCdownload(query.meth)
   TCGA.meth<- GDCprepare(query.meth)
+  data<-TCGA.meth@rowRanges
+  
+  testObj<-annotateGRanges(data,txdb) #test 
+  
+  ########################################################
+  #2. Annotation
+  ########################################################
+  
+  
+  # Create template to use in getBM(values=...)
+  txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
+  genes <- genes(txdb)
+  ensembl <- useMart("ensembl")
+  mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
+  
+  #obtain chr, start, end and HGNC name of all the genes annotated in hg38
+  annot_df <- getBM(attributes = c("chromosome_name","start_position","end_position","hgnc_symbol"), 
+                    filters = "entrezgene_id", values = genes$gene_id, mart = mart)
+  
   
   return()
 }

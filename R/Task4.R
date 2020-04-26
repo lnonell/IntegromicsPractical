@@ -28,14 +28,44 @@ task4<-function(cancer, df_samples){
                          platform = "Illumina Human Methylation 450", 
                          barcode = df_samples$barcode)
   GDCdownload(query.meth)
-  TCGA.meth<- GDCprepare(query.meth)
+  TCGA.meth<- GDCprepare(query=query.meth, 
+                         save=T, 
+                         save.filename = "DNAmeth.rda", 
+                         summarizedExperiment = T)
+  
+  # get expression matrix
   data<-assay(TCGA.meth)
   
-  phenodata<-TCGA.meth@elementMetadata
+  #get genes information
+  genes.info<- rowRanges(TCGA.meth)
   
-  test<-TCGA.meth@rowRanges
+  metadataGenesInfo<-genes.info@elementMetadata
   
-  testObj<-annotateGRanges(data,txdb) #test 
+  #get sample information
+  sample.info<- colData(TCGA.meth)
+  
+  #Probe, gene symbol, and position to TSS
+  subGenesInfo<-metadataGenesInfo[,c(1:2,5)]
+  
+  identical(subGenesInfo[[1]],rownames(data)) #TRUE, they are ordered in the same way
+  
+  #binding of previous info and samples
+  final<-cbind(subGenesInfo,data)
+  
+  
+  #removeNA
+  final<-final[complete.cases(final),]
+  
+  #remove those with "." in gene_symbol
+  
+  final<-final[!(final$Gene_Symbol=="."),]
+  
+  
+  #phenodata<-TCGA.meth@elementMetadata
+  
+  #test<-TCGA.meth@rowRanges
+  
+  #testObj<-annotateGRanges(data,txdb) #test 
   
   ########################################################
   #2. Annotation

@@ -79,7 +79,7 @@ task3<- function(cancer, df_samples, transform = TRUE){
   #different values assigned to the same gene and to the same sample, and for the third 
   #problem, we will assign a 0, assuming that this patient hasn't have alteration on that gene. 
   
-  for (gene in unique(df_ann$GeneSymbol)[1]){
+  for (gene in unique(df_ann$GeneSymbol)){
     gene.CN<-df_ann[df_ann$GeneSymbol==gene,]
     gene.CN.bySam <- data.frame()
     gene.CN.byPat <- data.frame()

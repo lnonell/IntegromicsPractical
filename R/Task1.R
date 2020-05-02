@@ -4,17 +4,19 @@
 #output: Dataframe with samples barcode, stageI or IV, years smoked
 
 task1<-function(cancer_type){
-  
-    #load library
-    library(TCGAbiolinks)
-
-    ###
-    #1 GET patients with rna, cn and met data
-    ###
     
+    #Check if the introduced argument is the correct class
+  
     if (class(cancer_type) != "character"){
       stop(print("The input 'cancer_type' must be the TCGA cancer code. E.g.: 'TCGA-LUAD'"))
     }
+  
+    #load library
+    suppressPackageStartupMessages(library(TCGAbiolinks))
+    
+    ###
+    #1 GET patients with rna, cn and met data
+    ###
   
     query.rna <- GDCquery(project = cancer_type, 
                           data.category = "Transcriptome Profiling", 
@@ -101,12 +103,12 @@ all_cancer_list <- TCGAbiolinks:::getGDCprojects()$project_id
 cancer_list <- all_cancer_list[grep("ESCA|HNSC|KICH|KIRC|KIRP|LUAD|LUSC|SKCM|STAD", all_cancer_list)]
 cancer_list
 
-LUAD.table <- task1(cancer_type = "TCGA-LUAD")
-KIRK.table <- task1(cancer_type = "TCGA-KIRC")
-HNSC.table <- task1(cancer_type = "TCGA-HNSC")
-STAD.table <- task1(cancer_type = "TCGA-STAD")
-LUSC.table <- task1(cancer_type = "TCGA-LUSC")
-KICH.table <- task1(cancer_type = "TCGA-KICH")
-SKCM.table <- task1(cancer_type = "TCGA-SKCM")
-KIRP.table <- task1(cancer_type = "TCGA-KIRP")
-ESCA.table <- task1(cancer_type = "TCGA-ESCA")
+LUAD.pts <- task1(cancer_type = "TCGA-LUAD")
+KIRC.pts <- task1(cancer_type = "TCGA-KIRC")
+HNSC.pts <- task1(cancer_type = "TCGA-HNSC")
+STAD.pts <- task1(cancer_type = "TCGA-STAD")
+LUSC.pts <- task1(cancer_type = "TCGA-LUSC")
+KICH.pts <- task1(cancer_type = "TCGA-KICH")
+SKCM.pts <- task1(cancer_type = "TCGA-SKCM")
+KIRP.pts <- task1(cancer_type = "TCGA-KIRP")
+ESCA.pts <- task1(cancer_type = "TCGA-ESCA")

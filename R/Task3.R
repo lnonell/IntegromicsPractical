@@ -2,9 +2,10 @@
 #Purpose: Download, preapre and treat CNV data.
 #input: Dataframe with the metadata realted to our samples (output task1) and TCGA cancer type (ex: TCGA-KIRC)
 #output: Dataframe with the CNV data related to each gene and grouped by patient. 
-#         The data will be converted by default (transform = TRUE) converted to be more suitable: -1, 0, +1.
+#         The data won't be converted by default (transform = FALSE), in case transform = TRUE, 
+#         it will converted the data to be more suitable: -1, 0, +1.
 
-task3<- function(cancer, df_samples, transform = TRUE){
+task3<- function(cancer, df_samples, transform = FALSE){
   
   #check arguments  
   stopifnot(is.character(cancer))
@@ -132,6 +133,8 @@ task3<- function(cancer, df_samples, transform = TRUE){
   if (transform == TRUE){
     for (i in 1:(dim(df_CN)[2])) df_CN[,i] <- as.integer(ifelse(2^(as.numeric(df_CN[,i])+1)>2.4,1,ifelse(2^(as.numeric(df_CN[,i])+1)<1.6,-1,0)))
   }
+  
+  colnames(df_CN) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(KIRC_task3_sample))
   
   return(data.matrix(data.frame(df_CN, stringsAsFactors = FALSE))) #let's make sure that we get a numeric matrix
   

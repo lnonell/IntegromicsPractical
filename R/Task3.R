@@ -69,6 +69,7 @@ task3<- function(cancer, df_samples, transform = TRUE){
   hits <- findOverlaps(genes_GR, df_GR, type="within") #hits found
   df_ann <- cbind(TCGA.CN[subjectHits(hits),],genes[queryHits(hits),]) 
   df_ann$Patient<-substr(df_ann$Sample,1,12) #create patient variable
+  df_ann$Sample<-substr(df_ann$Sample,1,15) #change the barcode of the whole aliquote to the fraction of the sample
   df_ann <- df_ann[,c(2,3,4,6,7,11,12)] #take chr, start, end, segment_mean, HGNC, patient and sample columns
   
   
@@ -87,7 +88,7 @@ task3<- function(cancer, df_samples, transform = TRUE){
     #1. Take the mean of the samples that can have more than one segment mean per gene 
     gene.CN.bySam <- gene.CN %>% group_by(Sample) %>% summarise(CN = mean(Segment_Mean, na.rm = TRUE))
     colnames(gene.CN.bySam) <- c("Sample",gene)
-    gene.CN.bySam$Sample <- substr(gene.CN.bySam$Sample,1,12) #now we pass from samples to patients
+    gene.CN.bySam$Sample <- substr(gene.CN.bySam$Sample,1,12)
     
     #2. Take only one sample per patient in case of having duplicates
     for (patient in unique(gene.CN.bySam$Sample)){
@@ -104,7 +105,7 @@ task3<- function(cancer, df_samples, transform = TRUE){
       }
     }
     
-    #Make sure that we have the same order for patients in the data frame 
+    #Make sure that we have the same order for patients in the data frame
     gene.CN.byPat <- as.data.frame(gene.CN.byPat[match(gene.CN.byPat$Patient, unique(df_ann$Patient)),]) 
     
     #With the first gene we will create the dataframe to store all the results

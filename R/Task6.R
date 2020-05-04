@@ -28,12 +28,19 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
   top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(df.met)*0.1))
   met.f <- df.met[names(top10sd),]
   
-  ## Data preparation (duda aqui)
+  ## Barcode CN
+  colnames(cn.f) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(cn.f))
+  
+  ## Set colnames order equal to task1
+  rna.f <- rna.f[, order(match(colnames(rna.f), as.character(df_samples[,1])))]
+  cn.f <- cn.f[, order(match(colnames(cn.f), as.character(df_samples[,1])))]
+  met.f <- met.f[, order(match(colnames(met.f), as.character(df_samples[,1])))]
+  
+  ## Data preparation
   rna4MFA <- rna.f[!is.na(rna.f[,1]),]
   cn4MFA <- cn.f[!is.na(cn.f[,1]),]
   met4MFA <- met.f[!is.na(met.f[,1]),]
   
-  ## stopifnot( colnames(rna4MFA), colnames(cn4MFA), colnames(met4MFA)) (duda aqui)
   ## Define conditions 
   cond <- as.factor(df_samples$tumor_stage)
   

@@ -1,7 +1,7 @@
 #Task 6: Blanca Rodriguez Fernandez 
 #Purpose: Apply MFA to the mRNA, CN and methylation data comparing stage iv vs stage i.
 #input: files of task1, task2, task3, task4 + path for output files
-#output: 100 most correlated variables with PC1 and PC2 + plots 
+#outputs: dataframe 100 most correlated variables with PC1 and PC2 + plots 
 task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
   
   if (pth == getwd()){

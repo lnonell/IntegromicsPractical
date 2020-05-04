@@ -42,7 +42,12 @@ task4<-function(cancer, df_samples){
   #get sample information
   sample.info<- colData(TCGA.meth)
   
-  
+  ########################################################
+  #2. Annotation
+  ########################################################
+
+  ensembl <- useMart("ensembl")
+  mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
   
   return()
 }

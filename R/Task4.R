@@ -44,11 +44,5 @@ task4<-function(cancer, df_samples){
   
   
   
-  #phenodata<-TCGA.meth@elementMetadata
-  
-  #test<-TCGA.meth@rowRanges
-  
-  #testObj<-annotateGRanges(data,txdb) #test 
-  
   return()
 }

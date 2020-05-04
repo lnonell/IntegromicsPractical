@@ -36,6 +36,10 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
   cn.f <- cn.f[, order(match(colnames(cn.f), as.character(df_samples[,1])))]
   met.f <- met.f[, order(match(colnames(met.f), as.character(df_samples[,1])))]
   
+  if(identical(colnames(met.f),identical(colnames(rna.f), colnames(cn.f))) != TRUE){
+    stop(print("Samples are not the same"))
+  }
+  
   ## Data preparation
   rna4MFA <- rna.f[!is.na(rna.f[,1]),]
   cn4MFA <- cn.f[!is.na(cn.f[,1]),]

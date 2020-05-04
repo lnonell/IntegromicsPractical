@@ -49,7 +49,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
   ## Apply MFA. # duda type of data 
   res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","n","c"), 
                   ncp=5, name.group=c("cond","RNA","CN","MET"),num.group.sup=c(1), graph = FALSE) 
-  pdf(paste(dir,"MFAplots.pdf",sep ="/"))
+  pdf(paste(pth,"MFAplots.pdf",sep ="/"))
   plot(res.cond, choix = "ind")
   plot(res.cond, choix = "ind", partial="all")
   plot(res.cond, choix = "axes")

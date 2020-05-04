@@ -1,10 +1,12 @@
-#Task 6
-#Purpose
+#Task 6: Blanca Rodriguez Fernandez 
+#Purpose: Apply MFA to the mRNA, CN and methylation data comparing stage iv vs stage i.
 #input: files of task1, task2, task3, task4 + path for output files
 #output: 100 most correlated variables with PC1 and PC2 + plots 
-task6 <- function(df_samples, df.rna, df.cn, df.met, dir = getwd()){
+task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
   
-  if( dir = getwd() ) warning('Default output file is your current working directory')
+  if (pth == getwd()){
+    warning(print("Default output file is your current working directory"))
+  }
   ## check arguments
   stopifnot(is.data.frame(df_samples))
   stopifnot(is.data.frame(df.rna))
@@ -40,12 +42,12 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, dir = getwd()){
   cn.l<-nrow(cn4MFA)
   met.l<-nrow(met4MFA)
   
-  # New data frame with individuals (tumors) in rows and variables in columns
+  # New data frame with individuals in rows and variables in columns
   data4Facto<-data.frame(as.factor(cond),t(rna4MFA),t(cn4MFA),t(met4MFA)) 
   rownames(data4Facto) <- paste(c(df_samples$barcode, cond, sep("_")))
   
   ## Apply MFA. # duda type of data 
-  res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","s","c"), 
+  res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","n","c"), 
                   ncp=5, name.group=c("cond","RNA","CN","MET"),num.group.sup=c(1), graph = FALSE) 
   pdf(paste(dir,"MFAplots.pdf",sep ="/"))
   plot(res.cond, choix = "ind")

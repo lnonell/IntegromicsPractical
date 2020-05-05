@@ -12,6 +12,10 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     data.f <- data[names(top10sd),]
     return(data.f)
   }
+  
+  ## Transform df.cn to class matrix (in order to have numeric values)
+  n.cn <- apply(df.cn,2, as.numeric)
+  rownames(n.cn) <- rownames(df.cn)
     
   ## We can perfom MFA w/o methylation data: 
   if(missing(df.met)){
@@ -26,13 +30,13 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     stopifnot(is.data.frame(df_samples))
     stopifnot(is.data.frame(df.rna))
     stopifnot(is.data.frame(df.cn))
-    stopifnot(is.numeric(df.cn[,1]))
+    stopifnot(is.numeric(n.cn[,1]))
     
     suppressPackageStartupMessages(library(FactoMineR))
     
     ## filter 10% genes by sd
     rna.f <- filterSD(df.rna)
-    cn.f <- filterSD(df.cn)
+    cn.f <- filterSD(n.cn)
     
     ## Barcode CN
     colnames(cn.f) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(cn.f))

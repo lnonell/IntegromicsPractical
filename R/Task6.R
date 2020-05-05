@@ -4,6 +4,14 @@
 #outputs: dataframe 100 most correlated variables with PC1 and PC2 + plots 
 task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
   
+  ## Filter by SD function
+  filterSD <- function(data, percentage = 0.1){
+    SD <- apply(data,1,sd)
+    top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(data)*percentage))
+    data.f <- df.met[names(top10sd),]
+    return(data.f)
+  
+  ## We can perfom MFA w/o methylation data: 
   if(missing(df.met)){
     
     warning(print("Methylation data is missing"))
@@ -21,13 +29,8 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     suppressPackageStartupMessages(library(FactoMineR))
     
     ## filter 10% genes by sd
-    SD <- apply(df.rna,1,sd)
-    top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(df.rna)*0.1))
-    rna.f <- df.rna[names(top10sd),]
-    
-    SD <- apply(df.cn,1,sd)
-    top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(df.cn)*0.1))
-    cn.f <- df.cn[names(top10sd),]
+    rna.f <- filterSD(df.rna)
+    cn.f <- filterSD(df.cn)
     
     ## Barcode CN
     colnames(cn.f) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(cn.f))
@@ -91,17 +94,9 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     suppressPackageStartupMessages(library(FactoMineR))
     
     ## filter 10% genes by sd
-    SD <- apply(df.rna,1,sd)
-    top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(df.rna)*0.1))
-    rna.f <- df.rna[names(top10sd),]
-    
-    SD <- apply(df.cn,1,sd)
-    top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(df.cn)*0.1))
-    cn.f <- df.cn[names(top10sd),]
-    
-    SD <- apply(df.met,1,sd)
-    top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(df.met)*0.1))
-    met.f <- df.met[names(top10sd),]
+    rna.f <- filterSD(df.rna)
+    cn.f <- filterSD(df.cn)
+    met.f <- filterSD(df.met)
     
     ## Barcode CN
     colnames(cn.f) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(cn.f))

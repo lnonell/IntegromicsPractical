@@ -1,18 +1,22 @@
 #Task 6: Blanca Rodriguez Fernandez 
 #Purpose: Apply MFA to the mRNA, CN and methylation data comparing stage iv vs stage i.
 #input: files of task1, task2, task3, task4 + path for output files
-#outputs: dataframe 100 most correlated variables with PC1 and PC2 + plots 
+#outputs: dataframe 100 most correlated variables with PC1 and PC2 + MFA plots in png format
 
 task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
  
-   ## Load needed packages 
+  ###########################
+  ## Load needed libraries ##
+  ###########################
   
   suppressPackageStartupMessages(library(FactoMineR))
   suppressPackageStartupMessages(library(ggplot2))
   suppressPackageStartupMessages(library(factoextra))
   suppressPackageStartupMessages(library(stringr))
   
-  ## Filter by SD function
+  ##################################
+  ## Define filter by SD function ##
+  ##################################
   filterSD <- function(data, percentage = 0.1){
     SD <- apply(data,1,sd)
     top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(data)*percentage))
@@ -20,12 +24,20 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     return(data.f)
   }
   
-  ## Transform df.cn to class matrix (in order to have numeric values)
-  n.cn <- apply(df.cn,2, as.numeric)
+  ##################################
+  ## Transform CN to class matrix ##
+  ##################################
+  n.cn <- apply(df.cn,2, as.numeric) #class numeric is needed
   rownames(n.cn) <- rownames(df.cn)
     
-  ## We can perfom MFA w/o methylation data: 
+  ## Now, we can perfom MFA w/o methylation data. If methylation data  
+  ## is missing, MFA will be applied to CN and expression data. 
+  
   if(missing(df.met)){
+    
+    ##########################
+    ## MFA without methylation
+    ##########################
     
     warning(print("Methylation data is missing"))
     
@@ -33,21 +45,21 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
       warning(print("Default output file is your current working directory"))
     }
     
-    ## check arguments
+    ## Check arguments ##
+    #####################
     stopifnot(is.data.frame(df_samples))
     stopifnot(is.data.frame(df.rna))
     stopifnot(is.data.frame(df.cn))
     stopifnot(is.numeric(n.cn[,1]))
     
     
-    ## filter 10% genes by sd
+    ## Filter 10% genes by standard deviation ##
+    ############################################
     rna.f <- filterSD(df.rna)
     cn.f <- filterSD(n.cn)
     
-    ## Barcode CN
-    colnames(cn.f) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(cn.f))
-    
-    ## Set colnames order equal to task1
+    ## Set colnames order equal to task1 ##
+    #######################################
     rna.f <- rna.f[, order(match(colnames(rna.f), as.character(df_samples[,1])))]
     cn.f <- cn.f[, order(match(colnames(cn.f), as.character(df_samples[,1])))]
     
@@ -55,71 +67,80 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
       stop(print("Samples are not the same"))
     }
     
-    ## Data preparation: remove NAs and establish different gene names for each data set 
+    ## Data preparation for MFA ##
+    ##############################
+    ## Remove NAs 
     rna4MFA <- rna.f[!is.na(rna.f[,1]),]
     cn4MFA <- cn.f[!is.na(cn.f[,1]),]
     
+    ## Label genes: c = copy number; r = expression data
     rownames(rna4MFA) <- paste(rownames(rna4MFA),"r",sep=".")
     rownames(cn4MFA) <- paste(rownames(cn4MFA),"c",sep=".") 
     
     ## Define conditions 
     cond <- as.factor(df_samples$tumor_stage)
     
-    ## Length of the variables (genes)
+    ## Number of genes in each dataset 
     rna.l<-nrow(rna4MFA)
     cn.l<-nrow(cn4MFA)
     
-    # New data frame with individuals in rows and variables in columns
+    ## New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(cond,t(rna4MFA),t(cn4MFA)) 
-    rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-2), cond, sep="_")
+    rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-4), cond, sep="_")
     
-    ## Apply MFA. # duda type of data 
+    ## Apply MFA ##
+    ###############
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l), type=c("n","c","c"), 
                     ncp=5, name.group=c("cond","RNA","CN"),num.group.sup=c(1), graph = FALSE) 
     
-    ## Plots
+    ## Obtain informative plots ##
+    ##############################
     # Group of variables
-    p1 <- fviz_mfa_var(res.cond, "group")
-    # Graph of individuals colored by cos2
-    p2<- fviz_mfa_ind(res.cond, col.ind = "cos2",
-                      gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+    fviz_mfa_var(res.cond, "group")
+    ggsave(file=paste(pth,"VariableGroupsMFA.png",sep ="/"))
+    
     # Partial individuals
-    p3 <- fviz_mfa_ind(res.cond, partial = "all")
+    fviz_mfa_ind(res.cond,habillage = cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+                 addEllipses = TRUE, ellipse.type = "confidence", 
+                 repel = TRUE 
+    ) 
+    ggsave(file=paste(pth,"IndividualsMFA.png",sep ="/"))
+    
     # Partial axes
-    p4 <- fviz_mfa_axes(res.cond)
+    fviz_mfa_axes(res.cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"))
+    ggsave(file=paste(pth,"PartialAxesMFA.png",sep ="/"))
     
-    #p1 <- plot(res.cond, choix = "ind")
-    #p2 <- plot(res.cond, choix = "ind", partial="all")
-    #p3 <- plot(res.cond, choix = "axes")
-    
-    
-    ## Return 100 most correlated variables with 
+    ## Return 100 most correlated variables ##
+    ##########################################
     ## PC1 (dimension 1 of global PCA)
     PC1 <- names(head(sort(res.cond$global.pca$var$cor[,1],decreasing = TRUE),100))
     ## PC2 (dimension 2 of global PCA)
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
-    return(list(data.frame(PC1,PC2), p1,p2,p3,p4)) 
+    return(data.frame(PC1,PC2)) 
     
   } else{
-    ## check arguments
+    
+    ##########################
+    ## MFA with methylation ##
+    ##########################
+
+    ## Check arguments ##
+    #####################
     stopifnot(is.data.frame(df_samples))
     stopifnot(is.data.frame(df.rna))
     stopifnot(is.data.frame(df.cn))
-    stopifnot(is.data.frame(df.met))
-    stopifnot(is.numeric(df.cn[,1]))
+    stopifnot(is.numeric(n.cn[,1]))
     stopifnot(is.numeric(df.met[,1]))
+
     
-    suppressPackageStartupMessages(library(FactoMineR))
-    
-    ## filter 10% genes by sd
+    ## Filter 10% genes by standard deviation ##
+    ############################################
     rna.f <- filterSD(df.rna)
     cn.f <- filterSD(df.cn)
     met.f <- filterSD(df.met)
     
-    ## Barcode CN
-    colnames(cn.f) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(cn.f))
-    
-    ## Set colnames order equal to task1
+    ## Set colnames order equal to task1 ##
+    #######################################
     rna.f <- rna.f[, order(match(colnames(rna.f), as.character(df_samples[,1])))]
     cn.f <- cn.f[, order(match(colnames(cn.f), as.character(df_samples[,1])))]
     met.f <- met.f[, order(match(colnames(met.f), as.character(df_samples[,1])))]
@@ -128,11 +149,14 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
       stop(print("Samples are not the same"))
     }
     
-    ## Data preparation: remove NAs and establish different gene names for each data set 
+    ## Data preparation for MFA ##
+    ##############################
+    ## Remove NAs 
     rna4MFA <- rna.f[!is.na(rna.f[,1]),]
     cn4MFA <- cn.f[!is.na(cn.f[,1]),]
     met4MFA <- met.f[!is.na(met.f[,1]),]
     
+    ## Label genes: c = copy number; r = expression data; m = methylation
     rownames(rna4MFA) <- paste(rownames(rna4MFA),"r",sep=".")
     rownames(cn4MFA) <- paste(rownames(cn4MFA),"c",sep=".") 
     rownames(met4MFA) <- paste(rownames(met4MFA),"m",sep=".")
@@ -140,42 +164,45 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     ## Define conditions 
     cond <- as.factor(df_samples$tumor_stage)
     
-    ## Length of the variables (genes)
+    ## Number of genes in each dataset 
     rna.l<-nrow(rna4MFA)
     cn.l<-nrow(cn4MFA)
     met.l<-nrow(met4MFA)
     
     # New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(as.factor(cond),t(rna4MFA),t(cn4MFA),t(met4MFA)) 
-    rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-2), cond, sep="_")
+    rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-4), cond, sep="_")
     
-    ## Apply MFA. 
+    ## Apply MFA ##
+    ###############
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","c","c"), 
                     ncp=5, name.group=c("cond","RNA","CN","MET"),num.group.sup=c(1), graph = FALSE) 
     
-    ## Plots
+    ## Obtain informative plots ##
+    ##############################
     # Group of variables
-    p1 <- fviz_mfa_var(res.cond, "group")
-    # Graph of individuals colored by cos2
-    p2<- fviz_mfa_ind(res.cond, col.ind = "cos2",
-                      gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+    fviz_mfa_var(res.cond, "group")
+    ggsave(file=paste(pth,"VariableGroupsMFA.png",sep ="/"))
+    
     # Partial individuals
-    p3 <- fviz_mfa_ind(res.cond, partial = "all")
+    fviz_mfa_ind(res.cond,habillage = cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+                 addEllipses = TRUE, ellipse.type = "confidence", 
+                 repel = TRUE 
+    ) 
+    ggsave(file=paste(pth,"IndividualsMFA.png",sep ="/"))
+    
     # Partial axes
-    p4 <- fviz_mfa_axes(res.cond)
-    
-    #p1 <- plot(res.cond, choix = "ind")
-    #p2 <- plot(res.cond, choix = "ind", partial="all")
-    #p3 <- plot(res.cond, choix = "axes")
-    
+    fviz_mfa_axes(res.cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"))
+    ggsave(file=paste(pth,"PartialAxesMFA.png",sep ="/"))
     
     ## Return 100 most correlated variables with 
     ## PC1 (dimension 1 of global PCA)
     PC1 <- names(head(sort(res.cond$global.pca$var$cor[,1],decreasing = TRUE),100))
     ## PC2 (dimension 2 of global PCA)
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
-    return(list(data.frame(PC1,PC2),p1,p2,p3,p4))
+    return(data.frame(PC1,PC2))
     
   }
     
 }
+

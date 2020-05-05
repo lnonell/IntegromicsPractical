@@ -75,7 +75,7 @@ task5 <- function(df_mRNA, df_other, df_samples, num_plots, rhovalue_sig = 0.67,
   
   # We make the Pvalue plots
   cat("\nCreating PDFs for the Pvalue plots...\n")
-  pdf(file.path(paste(getwd(),results_dir,"pvalue.plots.pdf",sep="/")))
+  pdf(file.path(paste(getwd(),results_dir,"pvalue_plots.pdf",sep="/")))
   qqplot(x = cor.table$pval,y = cor.table$Rho, main = "P-value vs Rho plot")
   qqplot(x = cor.table$pval.adj,y = cor.table$Rho, main = "Adjusted P-value vs Rho plot")
   dev.off()
@@ -97,7 +97,7 @@ task5 <- function(df_mRNA, df_other, df_samples, num_plots, rhovalue_sig = 0.67,
       gene.id<-rownames(KIRP.exp.c[rownames(KIRP.exp.c) == gene,])[1]
       y <- as.vector(unlist(KIRP.cnv.c[gene.id,]))
       x <- as.vector(unlist(KIRP.exp.c[gene.id,]))
-      png(file.path(paste(getwd(),results_dir,paste(gene,".mRNA.CNV.correlations.pdf",sep = ""),sep="/")))
+      png(file.path(paste(getwd(),results_dir,paste(gene,"_mRNA_CNV_correlations.png",sep = ""),sep="/")))
       plot(y,x,main=gene,xlab="Copy Number Variation",ylab="RNA expression",type="b")
       dev.off()
     }

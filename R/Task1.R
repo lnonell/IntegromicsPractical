@@ -9,14 +9,18 @@ task1<-function(cancer_type){
   
     if (class(cancer_type) != "character"){
       stop(print("The input 'cancer_type' must be the TCGA cancer code. E.g.: 'TCGA-LUAD'"))
-    }
+       }else{
+           cat("\nYou have introduced",cancer_type,"cancer dataset\n")
+         }
   
     #load library
     suppressPackageStartupMessages(library(TCGAbiolinks))
     
-    ###
+    ###########################################
     #1 GET patients with rna, cn and met data
-    ###
+    ###########################################
+    
+    cat("\nGetting patients with mRNA expression, CN and methilation data from", cancer_type, "cancer dataset...\n")
   
     query.rna <- GDCquery(project = cancer_type, 
                           data.category = "Transcriptome Profiling", 
@@ -34,10 +38,11 @@ task1<-function(cancer_type){
                                  intersect(substr(getResults(query.cn, cols = "cases"), 1, 12),
                                            substr(getResults(query.met, cols = "cases"), 1, 12)))
     
-    
-    ###
+    #####################
     #2 Get clinical data
-    ###
+    #####################
+    
+    cat("\nGetting clinical data from", cancer_type, "cancer patients...\n")
     
     clinical.data <- GDCquery_clinic(project = cancer_type, type = "clinical")
     
@@ -46,33 +51,49 @@ task1<-function(cancer_type){
     
     clinical.common.patients <- merge(clinical.data, common.patients, by = "submitter_id")
     
-    ###
+    ###############################################
     #3 Select patients with tumoral stage I and IV
-    ###
+    ###############################################
     
-    #To get the column number of the columns of interest: patient_id, tumor stage and years smoked
+    cat("\nSelecting patients with tumoral stage I and stage IV from", cancer_type, "cancer dataset...\n")
+    
+    #To get the column number of the columns of interest: patient_id and tumor stage
     id_col <- grep("submitter_id", colnames(clinical.common.patients))
     ts_col <- grep("tumor_stage", colnames(clinical.common.patients))
-    ys_col <- grep("^years_smoked", colnames(clinical.common.patients))
     
-    #To get up to 10 patients with stage I and 10 patients with stage II
+    #Select all patients with stageI (stage i, stage ia and stage ib)
+    
     stageI <- clinical.common.patients[grep("stage i$|stage ia|stage ib", clinical.common.patients$tumor_stage),
-                                       c(id_col, ts_col, ys_col)]
+                                       c(id_col, ts_col)]
+    
+    #To get up to 10 patients with stage I:
     
     if (nrow(stageI) >= 10){
       stageI <- stageI[1:10,]
     }
     
-    stageIV <- clinical.common.patients[grep("stage iv", clinical.common.patients$tumor_stage),c(id_col, ts_col, ys_col)]
+    #Select all patients with stageIV:
+    
+    stageIV <- clinical.common.patients[grep("stage iv", clinical.common.patients$tumor_stage),c(id_col, ts_col)]
+    
+    #To get 10 patients with stage IV:
     
     if (nrow(stageIV) >= 10){
       stageIV <- stageIV[1:10,]
     }
     
-    #To change "stage ia" and "stage ib" to "stage i" (same for "stage iv")
+    ###############################
+    #4 Create the final dataframe
+    ###############################
+    
+    cat("\nCreating clinical table with", cancer_type, "cancer patients...\n")
+    
+    #Bind the two parts of the table: stageI + stageIV:
     
     clinical.table <- rbind(stageI, stageIV)
     clinical.table$tumor_stage <- as.factor(clinical.table$tumor_stage)
+    
+    #To change "stage ia" and "stage ib" to "stage i" (same for "stage iv")
     
     levels(clinical.table$tumor_stage)[levels(clinical.table$tumor_stage)=="stage ia"] <- "stage i"
     levels(clinical.table$tumor_stage)[levels(clinical.table$tumor_stage)=="stage ib"] <- "stage i"
@@ -82,11 +103,13 @@ task1<-function(cancer_type){
     #Prepare the final output
     
     rownames(clinical.table) <- c(1:nrow(clinical.table))
-    colnames(clinical.table) <- c("barcode", "tumor_stage", "years_smoked")
-
-return(clinical.table)
+    colnames(clinical.table) <- c("barcode", "tumor_stage")
+    clinical.table$barcode <- as.character(clinical.table$barcode)
     
-}
+    cat("\nDone!\n")
+
+  return(clinical.table)
+  }
 
 
 

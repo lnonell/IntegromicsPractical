@@ -39,49 +39,57 @@ task4<-function(cancer, df_samples){
   #get genes information
   genes.info<- rowRanges(TCGA.meth)
   
-  metadataGenesInfo<-genes.info@elementMetadata
+  #check if the data object and the genes.info object have the same order (they should)
+  all(genes.info@ranges@NAMES==rownames(data)) #TRUE
+  
+  #from the previous GRanges, obtain useful dataframe
+  rownames(genes.info)==rownames(data)
+  
+  chromosome<-genes.info@seqnames
+  start_position<-genes.info@ranges@start
+  
+  gene_name<-genes.info@elementMetadata@listData$Gene_Symbol
+  i=0
+  for (i in 1:length(gene_name)){
+    gene_name[i]<-strsplit(gene_name[i], "[;]")[[1]][1]
+  }
+  
+  position_to_TSS<-genes.info@elementMetadata@listData$Position_to_TSS
+  i=0
+  for (i in 1:length(position_to_TSS)){
+    position_to_TSS[i]<-strsplit(position_to_TSS[i], "[;]")[[1]][1]
+  }
+  
+  
+  genes.info_df<-data.frame(chromosome,start_position, gene_name, position_to_TSS, data)
+  dim(genes.info_df) #485577 27
+  head(genes.info_df)
+  
+  #remove those probes without annotated genes
+  genes.info_df<-genes.info_df[genes.info_df$gene_name != ".", ]
+  
+  #transform the positions to numeric type
+  genes.info_df$position_to_TSS<-as.numeric(as.character(genes.info_df$position_to_TSS))
+  
+  #aggregated data frame
+  first_sample<-aggregate(TCGA.05.4390.01A.02D.1756.05 ~ gene_name, FUN = mean, data=genes.info_df)
+  
+  #remove the NA that are found across all columns
+  genes.info_df<-genes.info_df[complete.cases(genes.info_df), ]
+  
+  #remove those probes without annotated genes
+  genes.info_df<-genes.info_df[genes.info_df$gene_name != ".", ]
+  
+  #transform the positions to numeric type
+  genes.info_df$position_to_TSS<-as.numeric(as.character(genes.info_df$position_to_TSS))
   
   #get sample information
   sample.info<- colData(TCGA.meth)
   
-  #Probe, gene symbol, and position to TSS
-  subGenesInfo<-metadataGenesInfo[,c(1:2,5)]
-  
-  identical(subGenesInfo[[1]],rownames(data)) #TRUE, they are ordered in the same way
-  
-  #binding of previous info and samples
-  final<-cbind(subGenesInfo,data)
-  
-  
-  #removeNA
-  final<-final[complete.cases(final),]
-  
-  #remove those with "." in gene_symbol
-  
-  final<-final[!(final$Gene_Symbol=="."),]
-  
-  
-  #phenodata<-TCGA.meth@elementMetadata
-  
-  #test<-TCGA.meth@rowRanges
-  
-  #testObj<-annotateGRanges(data,txdb) #test 
-  
   ########################################################
   #2. Annotation
   ########################################################
-  
-  
-  # Create template to use in getBM(values=...)
-  txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
-  genes <- genes(txdb)
-  ensembl <- useMart("ensembl")
-  mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
-  
-  #obtain chr, start, end and HGNC name of all the genes annotated in hg38
-  annot_df <- getBM(attributes = c("chromosome_name","start_position","end_position","hgnc_symbol"), 
-                    filters = "entrezgene_id", values = genes$gene_id, mart = mart)
-  
+ 
   
   return()
 }

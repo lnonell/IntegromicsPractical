@@ -12,6 +12,10 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     data.f <- data[names(top10sd),]
     return(data.f)
   }
+  
+  ## Transform df.cn to class matrix (in order to have numeric values)
+  n.cn <- apply(df.cn,2, as.numeric)
+  rownames(n.cn) <- rownames(df.cn)
     
   ## We can perfom MFA w/o methylation data: 
   if(missing(df.met)){

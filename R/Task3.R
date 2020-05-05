@@ -101,13 +101,15 @@ task3<- function(cancer, df_samples, transform = FALSE){
   
   ###########################
   ##
-  ## STEP4: Group probes by gene and patient
+  ## STEP4: Group genes by patient 
   ##
   ###########################
   
-  #Here we will aggrupate the gene values by patient & solve: 1) more than one measure per gene
-  #in one patient, we will perfom the mean of the values, 2) in the case that one patient doesn't
-  #have a segment mean for one gene, we will assume that it is 0 (no gains, no lost = two normal copies)
+  #Problems: 
+  #1) more than one measure per gene in one patient --> we will perfom the mean of the values
+  #2) in the case that one patient has a missing value -->we will assume that it is 0 (no gains, no lost = two normal copies)
+  
+  pb <- txtProgressBar(min = 0, max = length(unique(df_ann$GeneSymbol)), style = 3)
   
   cat("\nGrouping genes by patient & treating missing values... Be patient, this might take a while...\n")
   
@@ -153,10 +155,9 @@ task3<- function(cancer, df_samples, transform = FALSE){
   ##
   ###########################
   
-  df_CN <- t(df_CN) #we will transpose to have genes in rows and patients in columns 
+  df_CN <- t(df_CN) #wgenes rows, columns patients
   
-  #We will transform the values to -1, 0 and 1, being -1 less copies of the gene, 
-  #0 the normal copies, and +1 more copies than the expected.
+  #Transofrm continues to categorical values: -1 (lost), 0 (2 normal copies), +1 (gain)
   
   if (transform == TRUE){
     cat("\nPerforming transformation...\n")

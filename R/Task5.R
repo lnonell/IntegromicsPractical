@@ -38,7 +38,7 @@ task5 <- function(df_mRNA, df_other, df_samples, num_plots, rhovalue_sig = 0.67,
   results_dir<-"/Results"
   dir.create(file.path(getwd(), results_dir),showWarnings = FALSE)
   
-  cat("\nPerforming correlations, this can take a while...\n")
+  cat("\nPerforming correlations. This might take a while...\n")
   
   
   # Now we will perform the correlations 

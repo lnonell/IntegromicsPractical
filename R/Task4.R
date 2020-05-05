@@ -63,9 +63,6 @@ task4<-function(cancer, df_samples){
   #get genes information
   genes.info<- rowRanges(df_not_dupl)
   
-  #get sample information
-  sample.info<- colData(df_not_dupl)
-  
   ########################################################
   #2. Annotation
   ########################################################
@@ -109,7 +106,7 @@ task4<-function(cancer, df_samples){
   }
   
   
-  genes.info_df<-as_tibble(data.frame(chr,start, end, gene_name, position_to_TSS, data))
+  genes.info_df<-as_tibble(data.frame(chr,start, end, gene_name, data))
   
   #remove those probes without annotated genes
   genes.info_df<-genes.info_df[genes.info_df$gene_name != ".", ]

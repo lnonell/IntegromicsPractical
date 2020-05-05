@@ -2,7 +2,7 @@
 #Purpose: Apply MFA to the mRNA, CN and methylation data comparing stage iv vs stage i.
 #input: files of task1, task2, task3, task4 + path for output files
 #outputs: dataframe 100 most correlated variables with PC1 and PC2 + plots 
-task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
+task6 <- function(df_samples, df.rna, df.cn , df.met, pth = getwd()){
   
   if (pth == getwd()){
     warning(print("Default output file is your current working directory"))
@@ -40,14 +40,17 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
     stop(print("Samples are not the same"))
   }
   
-  ## Data preparation
+  ## Data preparation: remove NAs and establish different gene names for each data set 
   rna4MFA <- rna.f[!is.na(rna.f[,1]),]
   cn4MFA <- cn.f[!is.na(cn.f[,1]),]
   met4MFA <- met.f[!is.na(met.f[,1]),]
+  rownames(rna4MFA) <- paste(rownames(rna4MFA),"r",sep=".")
+  rownames(cn4MFA) <- paste(rownames(cn4MFA),"c",sep=".") 
+  rownames(met4MFA) <- paste(rownames(met4MFA),"m",sep=".") 
   
   ## Define conditions 
   cond <- as.factor(df_samples$tumor_stage)
-  
+
   ## Length of the variables (genes)
   rna.l<-nrow(rna4MFA)
   cn.l<-nrow(cn4MFA)
@@ -60,11 +63,17 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd()){
   ## Apply MFA. # duda type of data 
   res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","n","c"), 
                   ncp=5, name.group=c("cond","RNA","CN","MET"),num.group.sup=c(1), graph = FALSE) 
-  pdf(paste(pth,"MFAplots.pdf",sep ="/"))
+  
+  png(paste(pth,"IFM1_MFA.png",sep ="/")) 
   plot(res.cond, choix = "ind")
+  dev.off()
+  png(paste(pth,"IFM2_MFA.png",sep ="/"))
   plot(res.cond, choix = "ind", partial="all")
+  dev.off()
+  png(paste(pth,"PA_MFA.png",sep ="/"))
   plot(res.cond, choix = "axes")
   dev.off()
+  
   
   ## Return 100 most correlated variables with 
   ## PC1 (dimension 1 of global PCA)

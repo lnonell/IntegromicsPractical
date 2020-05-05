@@ -71,7 +71,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     
     # New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(cond,t(rna4MFA),t(cn4MFA)) 
-    rownames(data4Facto) <- paste(str_sub(LUAD.pts$barcode,-2), cond, sep="_")
+    rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-2), cond, sep="_")
     
     ## Apply MFA. # duda type of data 
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l), type=c("n","c","c"), 
@@ -147,7 +147,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     
     # New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(as.factor(cond),t(rna4MFA),t(cn4MFA),t(met4MFA)) 
-    rownames(data4Facto) <- paste(str_sub(LUAD.pts$barcode,-2), cond, sep="_")
+    rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-2), cond, sep="_")
     
     ## Apply MFA. 
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","c","c"), 

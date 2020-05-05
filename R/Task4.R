@@ -156,7 +156,7 @@ task4<-function(cancer, df_samples){
   
   cat("\nAggregating cpg values by gene.\n")
   
-  agg_df <- aggregate(x = clean_df[2:23], 
+  agg_df <- aggregate(x = clean_df[2:ncol(clean_df)], 
                                  by = list(clean_df$GeneSymbol), 
                                  FUN = mean)
   

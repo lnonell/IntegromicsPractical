@@ -2,15 +2,17 @@
 #Purpose: Apply MFA to the mRNA, CN and methylation data comparing stage iv vs stage i.
 #input: files of task1, task2, task3, task4 + path for output files
 #outputs: dataframe 100 most correlated variables with PC1 and PC2 + plots 
+
 task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
   
   ## Filter by SD function
   filterSD <- function(data, percentage = 0.1){
     SD <- apply(data,1,sd)
     top10sd <- head(sort(SD,decreasing = TRUE), round(nrow(data)*percentage))
-    data.f <- df.met[names(top10sd),]
+    data.f <- data[names(top10sd),]
     return(data.f)
-  
+  }
+    
   ## We can perfom MFA w/o methylation data: 
   if(missing(df.met)){
     
@@ -82,7 +84,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
     return(data.frame(PC1,PC2)) 
     
-  } else {
+  } else{
     ## check arguments
     stopifnot(is.data.frame(df_samples))
     stopifnot(is.data.frame(df.rna))
@@ -146,7 +148,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     ## PC2 (dimension 2 of global PCA)
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
     return(data.frame(PC1,PC2))
+    
   }
-  
-  
+    
 }

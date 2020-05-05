@@ -24,6 +24,8 @@ task3<- function(cancer, df_samples, transform = FALSE){
   ##
   ###########################
   
+  cat("\nDownloading CN data from ", cancer, " cancer dataset...\n")
+  
   #prepare the data to be downloaded from TCGA
   query.CN <- GDCquery(project = cancer, 
                        data.category = "Copy Number Variation",
@@ -32,19 +34,41 @@ task3<- function(cancer, df_samples, transform = FALSE){
   GDCdownload(query.CN)
   TCGA.CN<- GDCprepare(query.CN)
   
+  #we will create a dataframe to help us to remove the duplicates
+  df_barcode_sample <- data.frame(Barcode = unique(TCGA.CN$Sample), Patient = substr(unique(TCGA.CN$Sample),1,12) )
+  
+  if (any(duplicated(df_barcode_sample$Patient))== TRUE){
+    dupl <- which(duplicated(df_barcode_sample$Patient))
+    barcodes_dupl <- df_barcode_sample[c(dupl), ]$Barcode
+  }
+  
+  #remove duplicated samples
+  i = 1
+  for (barcode in barcodes_dupl){
+    if (i == 1){
+      df_not_dupl <- TCGA.CN[TCGA.CN$Sample != barcode, ]
+    }
+    else{
+      df_not_dupl <- df_not_dupl[df_not_dupl$Sample != barcode, ]
+    }
+    i = i+1
+  }
+  
   ###########################
   ##
   ## STEP2: Annotate hg38 genes
   ##
   ###########################
   
+  cat("\nAnnotating h38 genes...")
+  
   #Set up an gene annotation template to use
   txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
   genes <- genes(txdb)
   ensembl <- useMart("ensembl")
-  mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl", host="www.ensembl.org")
+  mart <- useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl")
   
-  #obtain chr, start, end and HGNC name of all the genes annotated in hg38
+  #obtain the information chr, start, end and HGNC name of all the genes annotated in hg38
   annot_df <- getBM(attributes = c("chromosome_name","start_position","end_position","hgnc_symbol"), 
                     filters = "entrezgene_id", values = genes$gene_id, mart = mart)
   
@@ -58,56 +82,59 @@ task3<- function(cancer, df_samples, transform = FALSE){
   ##
   ###########################
   
+  cat("\nFind the correspondence between the hg38 genes and our segments of CN...\n")
+  
   #to make an easier overlap we need GRanges object from our annotation
   colnames(genes) <- c("Chr","Start","End", "GeneSymbol") 
   genes_GR <- makeGRangesFromDataFrame(genes,keep.extra.columns = TRUE)
   
   #to make an easier overlap we need GRanges object from our CN probes 
-  colnames(TCGA.CN) <- c("GDC_Aliquot","chr", "start", "end", "Num_Probes", "Segment_Mean", "Sample")
-  df_GR <- makeGRangesFromDataFrame(TCGA.CN[,c(2,3,4)])#we only take chr, start and end to do the overlap
+  colnames(df_not_dupl) <- c("GDC_Aliquot","chr", "start", "end", "Num_Probes", "Segment_Mean", "Sample")
+  df_GR <- makeGRangesFromDataFrame(df_not_dupl[,c(2,3,4)])#we only take chr, start and end to do the overlap
   
   #overlap the annotation with our CNV probes
   hits <- findOverlaps(genes_GR, df_GR, type="within") #hits found
-  df_ann <- cbind(TCGA.CN[subjectHits(hits),],genes[queryHits(hits),]) 
-  df_ann$Patient<-substr(df_ann$Sample,1,12) #create patient variable
-  df_ann$Sample<-substr(df_ann$Sample,1,15) #change the barcode of the whole aliquote to the fraction of the sample
-  df_ann <- df_ann[,c(2,3,4,6,7,11,12)] #take chr, start, end, segment_mean, HGNC, patient and sample columns
+  df_ann <- cbind(df_not_dupl[subjectHits(hits),],genes[queryHits(hits),]) 
+  df_ann$Sample<-substr(df_ann$Sample,1,12) #create patient variable
+  df_ann <- df_ann[,c(2,3,4,6,7,11)] #take chr, start, end, segment_mean, HGNC, patient and sample columns
   
   
-  #At this step we can face three problems: 1) having more than one segment that measures 
-  #the same gene 2) having patients with more than one sample, and 3) having patients
-  #with missing values for a fragment. For the first problem, we will allways get the 
-  #first sample per patient, for the second we will perform the mean between the 
-  #different values assigned to the same gene and to the same sample, and for the third 
-  #problem, we will assign a 0, assuming that this patient hasn't have alteration on that gene. 
+  ###########################
+  ##
+  ## STEP4: Group probes by gene and patient
+  ##
+  ###########################
+  
+  #Here we will aggrupate the gene values by patient & solve: 1) more than one measure per gene
+  #in one patient, we will perfom the mean of the values, 2) in the case that one patient doesn't
+  #have a segment mean for one gene, we will assume that it is 0 (no gains, no lost = two normal copies)
+  
+  cat("\nGrouping genes by patient & treating missing values... Be patient, this might take a while...\n")
   
   for (gene in unique(df_ann$GeneSymbol)){
+    
+    #perform progress bar
+    i<-i+1
+    setTxtProgressBar(pb, i)
+    
     gene.CN<-df_ann[df_ann$GeneSymbol==gene,]
-    gene.CN.bySam <- data.frame()
     gene.CN.byPat <- data.frame()
     
-    #1. Take the mean of the samples that can have more than one segment mean per gene 
-    gene.CN.bySam <- gene.CN %>% group_by(Sample) %>% summarise(CN = mean(Segment_Mean, na.rm = TRUE))
-    colnames(gene.CN.bySam) <- c("Sample",gene)
-    gene.CN.bySam$Sample <- substr(gene.CN.bySam$Sample,1,12)
-    
-    #2. Take only one sample per patient in case of having duplicates
-    for (patient in unique(gene.CN.bySam$Sample)){
-      gene.CN.byPat <- rbind(gene.CN.byPat, gene.CN[gene.CN$Patient == patient, c(7,4)][1,])
-    }
+    #1. Do the mean for more than one measure per gene in one sample
+    gene.CN.byPat <- gene.CN %>% group_by(Sample) %>% summarise(CN = mean(Segment_Mean, na.rm = TRUE))
     colnames(gene.CN.byPat) <- c("Patient",gene)
     
-    #3) In case that at least one patient is missing
-    if (dim(gene.CN.byPat)[1] != length(unique(df_ann$Patient))){ 
-      patients <- setdiff(unique(df_ann$Patient), gene.CN.byPat$Patient) #variables with patients missing
+    #2. Assune missing values in patients are normal situations 
+    if (dim(gene.CN.byPat)[1] != length(unique(df_ann$Sample))){ 
+      patients <- setdiff(unique(df_ann$Sample), gene.CN.byPat$Patient) #variables with patients missing
       for (patient in patients){
         patient.miss <- c(patient, 0)
         gene.CN.byPat <- rbind(gene.CN.byPat, patient.miss) #add value for patient missing
       }
     }
     
-    #Make sure that we have the same order for patients in the data frame
-    gene.CN.byPat <- as.data.frame(gene.CN.byPat[match(gene.CN.byPat$Patient, unique(df_ann$Patient)),]) 
+    #Make sure that we have the same order of patients
+    gene.CN.byPat <- as.data.frame(gene.CN.byPat[match(gene.CN.byPat$Patient, unique(df_ann$Sample)),]) 
     
     #With the first gene we will create the dataframe to store all the results
     if (gene == unique(df_ann$GeneSymbol)[1]){ 
@@ -129,13 +156,17 @@ task3<- function(cancer, df_samples, transform = FALSE){
   df_CN <- t(df_CN) #we will transpose to have genes in rows and patients in columns 
   
   #We will transform the values to -1, 0 and 1, being -1 less copies of the gene, 
-  #0 the normal copies, and +1 more copies than the expected. 
+  #0 the normal copies, and +1 more copies than the expected.
+  
   if (transform == TRUE){
+    cat("\nPerforming transformation...\n")
     for (i in 1:(dim(df_CN)[2])) df_CN[,i] <- as.integer(ifelse(2^(as.numeric(df_CN[,i])+1)>2.4,1,ifelse(2^(as.numeric(df_CN[,i])+1)<1.6,-1,0)))
   }
   
-  colnames(df_CN) <- gsub(pattern = "\\b.\\b", replacement = "-", colnames(df_CN))
+  df_final <- data.frame(df_CN, stringsAsFactors = FALSE)
   
-  return(data.frame(df_CN, stringsAsFactors = FALSE)) #return a data frame as output
+  colnames(df_final) <- gsub(pattern = "\\.", replacement = "-", colnames(df_final))
+  
+  return(df_final) #return a data frame as output
   
 }

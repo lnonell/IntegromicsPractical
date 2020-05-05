@@ -101,13 +101,13 @@ task3<- function(cancer, df_samples, transform = FALSE){
   
   ###########################
   ##
-  ## STEP4: Group probes by gene and patient
+  ## STEP4: Group genes by patient 
   ##
   ###########################
   
-  #Here we will aggrupate the gene values by patient & solve: 1) more than one measure per gene
-  #in one patient, we will perfom the mean of the values, 2) in the case that one patient doesn't
-  #have a segment mean for one gene, we will assume that it is 0 (no gains, no lost = two normal copies)
+  #Problems: 
+  #1) more than one measure per gene in one patient --> we will perfom the mean of the values
+  #2) in the case that one patient has a missing value -->we will assume that it is 0 (no gains, no lost = two normal copies)
   
   cat("\nGrouping genes by patient & treating missing values... Be patient, this might take a while...\n")
   

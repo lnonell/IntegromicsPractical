@@ -4,6 +4,13 @@
 #outputs: dataframe 100 most correlated variables with PC1 and PC2 + plots 
 
 task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
+ 
+   ## Load needed packages 
+  
+  suppressPackageStartupMessages(library(FactoMineR))
+  suppressPackageStartupMessages(library(ggplot2))
+  suppressPackageStartupMessages(library(factoextra))
+  suppressPackageStartupMessages(library(stringr))
   
   ## Filter by SD function
   filterSD <- function(data, percentage = 0.1){
@@ -32,7 +39,6 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     stopifnot(is.data.frame(df.cn))
     stopifnot(is.numeric(n.cn[,1]))
     
-    suppressPackageStartupMessages(library(FactoMineR))
     
     ## filter 10% genes by sd
     rna.f <- filterSD(df.rna)
@@ -65,28 +71,34 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     
     # New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(cond,t(rna4MFA),t(cn4MFA)) 
-    rownames(data4Facto) <- paste(df_samples$barcode, cond, sep="_")
+    rownames(data4Facto) <- paste(str_sub(LUAD.pts$barcode,-2), cond, sep="_")
     
     ## Apply MFA. # duda type of data 
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l), type=c("n","c","c"), 
                     ncp=5, name.group=c("cond","RNA","CN"),num.group.sup=c(1), graph = FALSE) 
     
-    png(paste(pth,"IFM1_MFA.png",sep ="/")) 
-    plot(res.cond, choix = "ind")
-    dev.off()
-    png(paste(pth,"IFM2_MFA.png",sep ="/"))
-    plot(res.cond, choix = "ind", partial="all")
-    dev.off()
-    png(paste(pth,"PA_MFA.png",sep ="/"))
-    plot(res.cond, choix = "axes")
-    dev.off()
+    ## Plots
+    # Group of variables
+    p1 <- fviz_mfa_var(res.cond, "group")
+    # Graph of individuals colored by cos2
+    p2<- fviz_mfa_ind(res.cond, col.ind = "cos2",
+                      gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+    # Partial individuals
+    p3 <- fviz_mfa_ind(res.cond, partial = "all")
+    # Partial axes
+    p4 <- fviz_mfa_axes(res.cond)
+    
+    #p1 <- plot(res.cond, choix = "ind")
+    #p2 <- plot(res.cond, choix = "ind", partial="all")
+    #p3 <- plot(res.cond, choix = "axes")
+    
     
     ## Return 100 most correlated variables with 
     ## PC1 (dimension 1 of global PCA)
     PC1 <- names(head(sort(res.cond$global.pca$var$cor[,1],decreasing = TRUE),100))
     ## PC2 (dimension 2 of global PCA)
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
-    return(data.frame(PC1,PC2)) 
+    return(list(data.frame(PC1,PC2), p1,p2,p3,p4)) 
     
   } else{
     ## check arguments
@@ -135,23 +147,34 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     
     # New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(as.factor(cond),t(rna4MFA),t(cn4MFA),t(met4MFA)) 
-    rownames(data4Facto) <- paste(df_samples$barcode, cond, sep="_")
+    rownames(data4Facto) <- paste(str_sub(LUAD.pts$barcode,-2), cond, sep="_")
     
     ## Apply MFA. 
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","c","c"), 
                     ncp=5, name.group=c("cond","RNA","CN","MET"),num.group.sup=c(1), graph = FALSE) 
-    pdf(paste(dir,"MFAplots.pdf",sep ="/"))
-    plot(res.cond, choix = "ind")
-    plot(res.cond, choix = "ind", partial="all")
-    plot(res.cond, choix = "axes")
-    dev.off()
+    
+    ## Plots
+    # Group of variables
+    p1 <- fviz_mfa_var(res.cond, "group")
+    # Graph of individuals colored by cos2
+    p2<- fviz_mfa_ind(res.cond, col.ind = "cos2",
+                      gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+    # Partial individuals
+    p3 <- fviz_mfa_ind(res.cond, partial = "all")
+    # Partial axes
+    p4 <- fviz_mfa_axes(res.cond)
+    
+    #p1 <- plot(res.cond, choix = "ind")
+    #p2 <- plot(res.cond, choix = "ind", partial="all")
+    #p3 <- plot(res.cond, choix = "axes")
+    
     
     ## Return 100 most correlated variables with 
     ## PC1 (dimension 1 of global PCA)
     PC1 <- names(head(sort(res.cond$global.pca$var$cor[,1],decreasing = TRUE),100))
     ## PC2 (dimension 2 of global PCA)
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
-    return(data.frame(PC1,PC2))
+    return(list(data.frame(PC1,PC2),p1,p2,p3,p4))
     
   }
     

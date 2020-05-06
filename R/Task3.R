@@ -109,9 +109,9 @@ task3<- function(cancer, df_samples, transform = FALSE){
   #1) more than one measure per gene in one patient --> we will perfom the mean of the values
   #2) in the case that one patient has a missing value -->we will assume that it is 0 (no gains, no lost = two normal copies)
   
-  pb <- txtProgressBar(min = 0, max = length(unique(df_ann$GeneSymbol)), style = 3)
-  
   cat("\nGrouping genes by patient & treating missing values... Be patient, this might take a while...\n")
+  
+  pb <- txtProgressBar(min = 0, max = length(unique(df_ann$GeneSymbol)), style = 3) #define a progress bar
   
   for (gene in unique(df_ann$GeneSymbol)){
     

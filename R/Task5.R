@@ -12,7 +12,7 @@
 #########################
 
 
-task5.cnv <- function(df_mRNA, df_CNV, df_samples, num_plots, rhovalue_sig = 0.67, pvalue_sig = 0.05){
+task5.cnv <- function(df_mRNA, df_CNV, df_samples, num_plots = 4, rhovalue_sig = 0.67, pvalue_sig = 0.05){
   
   # Check arguments  
   stopifnot(is.data.frame(df_mRNA))
@@ -122,6 +122,17 @@ task5.cnv <- function(df_mRNA, df_CNV, df_samples, num_plots, rhovalue_sig = 0.6
   return(cor.sig.table)
 }  
 
+####################### To test the function ###########################
+
+LUAD.cnv.corr <- task5.cnv(df_mRNA = LUAD.exp, df_CNV = LUAD.cnv, df_samples = LUAD.pts)
+KIRC.cnv.corr <- task5.cnv(df_mRNA = KIRK.exp, df_CNV = KIRC.cnv, df_samples = KIRC.pts)
+HNSC.cnv.corr <- task5.cnv(df_mRNA = HNSC.exp, df_CNV = HNSC.cnv, df_samples = HNSC.pts)
+STAD.cnv.corr <- task5.cnv(df_mRNA = STAD.exp, df_CNV = STAD.cnv, df_samples = STAD.pts)
+LUSC.cnv.corr <- task5.cnv(df_mRNA = LUSC.exp, df_CNV = LUSC.cnv, df_samples = LUSC.pts)
+KICH.cnv.corr <- task5.cnv(df_mRNA = KICH.exp, df_CNV = KICH.cnv, df_samples = KICH.pts)
+SKCM.cnv.corr <- task5.cnv(df_mRNA = SKCM.exp, df_CNV = SKCM.cnv, df_samples = SKCM.pts)
+KIRP.cnv.corr <- task5.cnv(df_mRNA = KIRP.exp, df_CNV = KIRP.cnv, df_samples = KIRP.pts)
+ESCA.cnv.corr <- task5.cnv(df_mRNA = ESCA.exp, df_CNV = ESCA.cnv, df_samples = ESCA.pts)
 
 
 ################################
@@ -130,7 +141,7 @@ task5.cnv <- function(df_mRNA, df_CNV, df_samples, num_plots, rhovalue_sig = 0.6
 
 
 
-task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots, rhovalue_sig = 0.67, pvalue_sig = 0.05){
+task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots = 4, rhovalue_sig = 0.67, pvalue_sig = 0.05){
   
   # Check arguments  
   stopifnot(is.data.frame(df_mRNA))
@@ -243,3 +254,17 @@ task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots, rhovalue_sig = 0
   cat("\n DONE \n") 
   return(cor.sig.table)
 }
+
+
+####################### To test the function ###########################
+
+LUAD.meth.corr <- task5.meth(df_mRNA = LUAD.exp, df_meth = LUAD.meth, df_samples = LUAD.pts)
+KIRC.meth.corr <- task5.meth(df_mRNA = KIRK.exp, df_meth = KIRC.meth, df_samples = KIRC.pts)
+HNSC.meth.corr <- task5.meth(df_mRNA = HNSC.exp, df_meth = HNSC.meth, df_samples = HNSC.pts)
+STAD.meth.corr <- task5.meth(df_mRNA = STAD.exp, df_meth = STAD.meth, df_samples = STAD.pts)
+LUSC.meth.corr <- task5.meth(df_mRNA = LUSC.exp, df_meth = LUSC.meth, df_samples = LUSC.pts)
+KICH.meth.corr <- task5.meth(df_mRNA = KICH.exp, df_meth = KICH.meth, df_samples = KICH.pts)
+SKCM.meth.corr <- task5.meth(df_mRNA = SKCM.exp, df_meth = SKCM.meth, df_samples = SKCM.pts)
+KIRP.meth.corr <- task5.meth(df_mRNA = KIRP.exp, df_meth = KIRP.meth, df_samples = KIRP.pts)
+ESCA.meth.corr <- task5.meth(df_mRNA = ESCA.exp, df_meth = ESCA.meth, df_samples = ESCA.pts)
+

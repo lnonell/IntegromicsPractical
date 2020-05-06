@@ -36,32 +36,17 @@ task4<-function(cancer, df_samples){
                          save=T, 
                          save.filename = "DNAmeth.rda", 
                          summarizedExperiment = T)
-  
-  #we will create a dataframe to help us to remove the duplicates
-  df_barcode_sample <- data.frame(Barcode = unique(TCGA.meth$sample), Patient = substr(unique(TCGA.meth$sample),1,12) )
-  
-  if (any(duplicated(df_barcode_sample$Patient))== TRUE){
-    dupl <- which(duplicated(df_barcode_sample$Patient))
-    barcodes_dupl <- df_barcode_sample[c(dupl), ]$Barcode
-  }
-  
-  #remove duplicated samples
-  i = 1
-  for (barcode in barcodes_dupl){
-    if (i == 1){
-      df_not_dupl <- TCGA.meth[TCGA.meth$sample != barcode, ]
-    }
-    else{
-      df_not_dupl <- df_not_dupl[df_not_dupl$sample != barcode, ]
-    }
-    i = i+1
-  }
+
   
   # get expression matrix
-  data<-assay(df_not_dupl)
+  data<-assay(TCGA.meth)
+  colnames(data)<-substr(colnames(data),1,12)
+  
+  #removal of duplicates (will remove the first duplicated column)
+  data <- data[, !duplicated(colnames(data))]
   
   #get genes information
-  genes.info<- rowRanges(df_not_dupl)
+  genes.info<- rowRanges(TCGA.meth)
   
   ########################################################
   #2. Annotation
@@ -145,20 +130,59 @@ task4<-function(cancer, df_samples){
   df_ann <- cbind(genes.info_df[queryHits(hits),],genes[subjectHits(hits),])
   drops <- c("chr","start","end","gene_name","position_to_TSS")
   clean_df<-df_ann[ , !(names(df_ann) %in% drops)]
-  clean_df<-clean_df[c(24,1:23)]
+  
+  
+  
+  #Function to move the last column to the first one, by StackOverflow user: A5C1D2H2I1M1N2O1R2T1
+  moveme <- function (invec, movecommand) {
+    movecommand <- lapply(strsplit(strsplit(movecommand, ";")[[1]], 
+                                   ",|\\s+"), function(x) x[x != ""])
+    movelist <- lapply(movecommand, function(x) {
+      Where <- x[which(x %in% c("before", "after", "first", 
+                                "last")):length(x)]
+      ToMove <- setdiff(x, Where)
+      list(ToMove, Where)
+    })
+    myVec <- invec
+    for (i in seq_along(movelist)) {
+      temp <- setdiff(myVec, movelist[[i]][[1]])
+      A <- movelist[[i]][[2]][1]
+      if (A %in% c("before", "after")) {
+        ba <- movelist[[i]][[2]][2]
+        if (A == "before") {
+          after <- match(ba, temp) - 1
+        }
+        else if (A == "after") {
+          after <- match(ba, temp)
+        }
+      }
+      else if (A == "first") {
+        after <- 0
+      }
+      else if (A == "last") {
+        after <- length(myVec)
+      }
+      myVec <- append(temp, values = movelist[[i]][[1]], after = after)
+    }
+    myVec
+  }
+  
+  
+  clean_df<-clean_df[moveme(names(clean_df), "GeneSymbol first")]
   
   ########################################################
   #4. Agregation of beta value means
   ########################################################
   
-  #remove the NA that are found across all columns
-  clean_df<-clean_df[complete.cases(clean_df), ]
-  
   cat("\nAggregating cpg values by gene.\n")
+  
+  mean.na<-function(x){
+    mean(x, na.rm = TRUE)
+  }
   
   agg_df <- aggregate(x = clean_df[2:ncol(clean_df)], 
                                  by = list(clean_df$GeneSymbol), 
-                                 FUN = mean)
+                                 FUN = mean.na)
   
   rownames(agg_df)<-agg_df$Group.1
   drops <- "Group.1"
@@ -166,6 +190,8 @@ task4<-function(cancer, df_samples){
   
   totalmean<-apply(agg_df, 1, mean)
   agg_df<-cbind(totalmean, agg_df)
+  
+  cat("\nIgnore this last warning, we're done :)\n")
   
   return(agg_df)
 }
@@ -185,7 +211,7 @@ KIRP.pts <- task1("TCGA-KIRP")
 ESCA.pts <- task1("TCGA-ESCA")
 
 LUAD.meth <- task4("TCGA-LUAD",  LUAD.pts)
-KIRK.meth <- task4("TCGA-KIRC",  KIRC.pts)
+KIRC.meth <- task4("TCGA-KIRC",  KIRC.pts)
 HNSC.meth <- task4("TCGA-HNSC",  HNSC.pts)
 STAD.meth <- task4("TCGA-STAD",  STAD.pts )
 LUSC.meth <- task4("TCGA-LUSC",  LUSC.pts)
@@ -193,3 +219,7 @@ KICH.meth <- task4("TCGA-KICH",  KICH.pts)
 SKCM.meth <- task4("TCGA-SKCM",  SKCM.pts )
 KIRP.meth <- task4("TCGA-KIRP",  KIRP.pts)
 ESCA.meth <- task4("TCGA-ESCA",  ESCA.pts)
+
+
+cancer<-"TCGA-KIRC"
+df_samples<-KIRC.pts

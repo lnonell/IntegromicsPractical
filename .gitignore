@@ -15,3 +15,11 @@ ESCA.cn.RData
 ESCA.mrna.RData
 ESCA.pts.RData
 ESCA.cn.t.RData
+ESCA.meth.RData
+Results_Meth/
+SKCM.meth.RData
+DNAmeth.rda
+IndividualsMFA.png
+PartialAxesMFA.png
+VariableGroupsMFA.png
+Results_CNV/

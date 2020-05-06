@@ -1,7 +1,7 @@
 #Task 1 Monica Sanchez
 #Purpose of the task: Prepare clinical data
 #input: TCGA cancer code
-#output: Dataframe with samples barcode, stageI or IV, years smoked
+#output: Dataframe with samples barcode and tumoral stageI or IV
 
 task1<-function(cancer_type){
     

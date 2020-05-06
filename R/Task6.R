@@ -86,6 +86,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     
     ## New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(cond,t(rna4MFA),t(cn4MFA)) 
+    cat("\nGetting participant identifier\n")
     rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-4), cond, sep="_")
     
     ## Apply MFA ##
@@ -174,6 +175,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     
     # New data frame with individuals in rows and variables in columns
     data4Facto<-data.frame(as.factor(cond),t(rna4MFA),t(cn4MFA),t(met4MFA)) 
+    cat("\nGetting participant identifier\n")
     rownames(data4Facto) <- paste(str_sub(df_samples$barcode,-4), cond, sep="_")
     
     ## Apply MFA ##

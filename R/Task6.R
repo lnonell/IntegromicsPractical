@@ -135,7 +135,10 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     stopifnot(is.data.frame(df.cn))
     stopifnot(is.numeric(n.cn[,1]))
     stopifnot(is.numeric(df.met[,1]))
-
+    
+    ## Drop total mean column from methylation data ##
+    ##################################################
+    df.met <- df.met[,-1]
     
     ## Filter 10% genes by standard deviation ##
     ############################################

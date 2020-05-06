@@ -53,11 +53,11 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
   
   # Order to allow stage comparisons #
   
-  mRNA <- mRNA[, order(match(colnames(mRNA), LUSC.table[,1]))]
-  CNV <- CNV[, order(match(colnames(CNV), LUSC.table[,1]))]
-  Methylation <- Methylation[, order(match(colnames(Methylation), LUSC.table[,1]))]
+  mRNA <- mRNA[, order(match(colnames(mRNA), Cancer_table[,1]))]
+  CNV <- CNV[, order(match(colnames(CNV), Cancer_table[,1]))]
+  Methylation <- Methylation[, order(match(colnames(Methylation), Cancer_table[,1]))]
   
-  if (all(sapply(list(colnames(mRNA),colnames(CNV),colnames(Methylation), LUSC.table[,1]), function(x) x == LUSC.table[,1])) == FALSE){
+  if (all(sapply(list(colnames(mRNA),colnames(CNV),colnames(Methylation), Cancer_table[,1]), function(x) x == Cancer_table[,1])) == FALSE){
     stop(print("Samples are not the same"))}
   
   
@@ -142,7 +142,7 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
   
   # Tune the keepX parameters obtained with the block.splsda function #
   
-  s.keep <- sort(sample(1:length(rownames(LUSC.table)),5))
+  s.keep <- sort(sample(1:length(rownames(Cancer_table)),5))
   test.keepX = list(mRNA = s.keep, CNV =s.keep, Methylation = s.keep)
   
   
@@ -226,3 +226,4 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
   
   return(list(data.table1, data.table2))
 }
+

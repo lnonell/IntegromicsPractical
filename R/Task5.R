@@ -35,7 +35,7 @@ task5.cnv <- function(df_mRNA, df_CNV, df_samples, num_plots = 4, rhovalue_sig =
   }
   
   # We remove any NaN data from both dataframes
-  df_meth <- df_meth[complete.cases(df_meth), ]
+  df_CNV <- df_CNV[complete.cases(df_CNV), ]
   df_mRNA <- df_mRNA[complete.cases(df_mRNA), ]
   
   

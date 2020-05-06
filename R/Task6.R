@@ -110,12 +110,15 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     fviz_mfa_axes(res.cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"))
     ggsave(file=paste(pth,"PartialAxesMFA.png",sep ="/"))
     
+    cat("\nCheck MFA plots in your working directory or output path\n")
+    
     ## Return 100 most correlated variables ##
     ##########################################
     ## PC1 (dimension 1 of global PCA)
     PC1 <- names(head(sort(res.cond$global.pca$var$cor[,1],decreasing = TRUE),100))
     ## PC2 (dimension 2 of global PCA)
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
+    cat("\nThese are the 100 most correlated genes to PC1 and PC2\n")
     return(data.frame(PC1,PC2)) 
     
   } else{
@@ -194,12 +197,13 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     # Partial axes
     fviz_mfa_axes(res.cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"))
     ggsave(file=paste(pth,"PartialAxesMFA.png",sep ="/"))
-    
+    cat("\nCheck MFA plots in your working directory or output path\n")
     ## Return 100 most correlated variables with 
     ## PC1 (dimension 1 of global PCA)
     PC1 <- names(head(sort(res.cond$global.pca$var$cor[,1],decreasing = TRUE),100))
     ## PC2 (dimension 2 of global PCA)
     PC2 <- names(head(sort(res.cond$global.pca$var$cor[,2],decreasing = TRUE), 100))
+    cat("\nThese are the 100 most correlated genes to PC1 and PC2\n")
     return(data.frame(PC1,PC2))
     
   }

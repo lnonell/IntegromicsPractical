@@ -96,20 +96,22 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     
     ## Obtain informative plots ##
     ##############################
+    ## Create folder to store the plots 
+    dir.create(file.path(pth, "./MFA_Results"))
     # Group of variables
     fviz_mfa_var(res.cond, "group")
-    ggsave(file=paste(pth,"VariableGroupsMFA.png",sep ="/"))
+    ggsave(file="./MFA_Results/VariableGroupsMFA.png")
     
     # Partial individuals
     fviz_mfa_ind(res.cond,habillage = cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"),
                  addEllipses = TRUE, ellipse.type = "confidence", 
                  repel = TRUE 
     ) 
-    ggsave(file=paste(pth,"IndividualsMFA.png",sep ="/"))
+    ggsave(file="./MFA_Results/IndividualsMFA.png")
     
     # Partial axes
     fviz_mfa_axes(res.cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"))
-    ggsave(file=paste(pth,"PartialAxesMFA.png",sep ="/"))
+    ggsave(file="./MFA_Results/PartialAxesMFA.png")
     
     cat("\nCheck MFA plots in your working directory or output path\n")
     
@@ -191,20 +193,22 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     
     ## Obtain informative plots ##
     ##############################
+    ## Create folder to store the plots 
+    dir.create(file.path(pth, "./MFA_Results"))
     # Group of variables
     fviz_mfa_var(res.cond, "group")
-    ggsave(file=paste(pth,"VariableGroupsMFA.png",sep ="/"))
+    ggsave(file="./MFA_Results/VariableGroupsMFA.png")
     
     # Partial individuals
     fviz_mfa_ind(res.cond,habillage = cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"),
                  addEllipses = TRUE, ellipse.type = "confidence", 
                  repel = TRUE 
     ) 
-    ggsave(file=paste(pth,"IndividualsMFA.png",sep ="/"))
+    ggsave(file="./MFA_Results/IndividualsMFA.png")
     
     # Partial axes
     fviz_mfa_axes(res.cond, palette = c("#00AFBB","#999999", "#E7B800", "#FC4E07"))
-    ggsave(file=paste(pth,"PartialAxesMFA.png",sep ="/"))
+    ggsave(file="./MFA_Results/PartialAxesMFA.png")
     cat("\nCheck MFA plots in your working directory or output path\n")
     ## Return 100 most correlated variables with 
     ## PC1 (dimension 1 of global PCA)

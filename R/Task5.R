@@ -28,21 +28,21 @@ task5.cnv <- function(df_mRNA, df_CNV, df_samples, num_plots = 4, rhovalue_sig =
   colnames(df_mRNA) <- gsub("-",".",colnames(df_mRNA))
   colnames(df_CNV) <- gsub("-",".",colnames(df_CNV))
   
-  # To check if all samples are in the same order and correct it
-  if (all(colnames(df_mRNA)==colnames(df_CNV)) == FALSE) {
-    df_mRNA.s<-df_mRNA[,colnames(df_CNV)]
-    cat("\nThe samples have been reorganized...\n")
-  }
-  
   # We remove any NaN data from both dataframes
   df_CNV <- df_CNV[complete.cases(df_CNV), ]
   df_mRNA <- df_mRNA[complete.cases(df_mRNA), ]
   
+  # To check if all samples are in the same order and correct it
+  if (all(colnames(df_mRNA)==colnames(df_CNV)) == FALSE) {
+    df_mRNA<-df_mRNA[,colnames(df_CNV)]
+    cat("\nThe samples have been reorganized...\n")
+  }
+
   
   # We get all the common genes in both dataframes sorted
-  common.genes <- intersect(sort(rownames(df_CNV)),sort(rownames(df_mRNA.s)))
+  common.genes <- intersect(sort(rownames(df_CNV)),sort(rownames(df_mRNA)))
   df_CNV.c <- df_CNV[common.genes,] # We select common rows in df other  
-  df_mRNA.c <- df_mRNA.s[common.genes,] # We select common rows in df mRNA
+  df_mRNA.c <- df_mRNA[common.genes,] # We select common rows in df mRNA
   
   # We create the Results directory, hanging from the working directory
   cat("\nCreating Results_CNV directory...\n")
@@ -162,16 +162,16 @@ task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots = 4, rhovalue_sig
     cat("\nErasing totalmean column...\n")
   }
   
-  # To check if all samples are in the same order and correct it
-  if (all(colnames(df_mRNA)==colnames(df_meth)) == FALSE) {
-    df_mRNA.s<-df_mRNA[colnames(df_meth),]
-    cat("\nThe samples have been reorganized...\n")
-  }
-  
-  
   # We remove any NaN data from both dataframes
   df_meth <- df_meth[complete.cases(df_meth), ]
   df_mRNA <- df_mRNA[complete.cases(df_mRNA), ]
+  
+  # To check if all samples are in the same order and correct it
+  if (all(colnames(df_mRNA)==colnames(df_meth)) == FALSE) {
+    df_mRNA<-df_mRNA[colnames(df_meth),]
+    cat("\nThe samples have been reorganized...\n")
+  }
+  
   
   # We get all the common genes in both dataframes sorted
   common.genes <- intersect(sort(rownames(df_meth)),sort(rownames(df_mRNA)))

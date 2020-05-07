@@ -3,7 +3,7 @@
 #input: Data frame with the prepared clinical data from task 1, plus the cancer code from TCGA.
 #output: Data frame with samples in columns and genes (HUGO Symbol) in rows containing the beta values mean of each gene and sample.
 
-task4<-function(cancer, df_samples){
+task4<-function(cancer, df_samples, total.mean=FALSE){
   
   stopifnot(is.character(cancer))
   stopifnot(is.data.frame(df_samples))
@@ -187,13 +187,16 @@ task4<-function(cancer, df_samples){
   rownames(agg_df)<-agg_df$Group.1
   drops <- "Group.1"
   agg_df<-agg_df[ , !(names(agg_df) %in% drops)]
+  colnames(agg_df)<-gsub("\\.","-", colnames(agg_df))
   
-  totalmean<-apply(agg_df, 1, mean)
-  agg_df<-cbind(totalmean, agg_df)
+  if (total.mean==FALSE){
+    return(agg_df)
+  } else {
+    totalmean<-apply(agg_df, 1, mean)
+    agg_df<-cbind(totalmean, agg_df)
+    return(agg_df)
+  }
   
-  cat("\nIgnore this last warning, we're done :)\n")
-  
-  return(agg_df)
 }
 
 

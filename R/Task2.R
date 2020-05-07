@@ -31,7 +31,7 @@ task2<-function(cancer_type, clinical.table){
   getResults(query.rna) #data that will be downloaded
   GDCdownload(query.rna)
   TCGA.exp <- GDCprepare(query.rna) #this is creating the R object
-  
+  cat("Getting expression data...")
   ########################################################################
   # 2. Annotation HUGO:
   ########################################################################
@@ -56,8 +56,11 @@ task2<-function(cancer_type, clinical.table){
   # 3. Create matrix of interest and check for duplicates: 
   ########################################################################
 
+  #### Changing the colnames with the patients'barcode! 
   colnames(sub_data) <- substr(colnames(sub_data),1,12)
   
+  #### Checking if there are some duplicates in the patients! If there are, the function will select the randomly 
+  #### only the first patient! 
   if(any(duplicated(colnames(sub_data))) == TRUE){
   dupl <- which(duplicated(colnames(sub_data)))
   sub_data <- sub_data[,-dupl]
@@ -68,20 +71,29 @@ task2<-function(cancer_type, clinical.table){
   ########################################################################
   # 4. Normalization: 
   ########################################################################
+  
+  #### Now we have to normalize the data, we use the package edgeR and first of all
+  #### it be created the DEGlist with the data that have to be normalized 
+  cat("Your data are being normalized")
   sub_data <- DGEList(sub_data)
+  
+  #### Then is used the function calcNormFactor, by which the TMM normalizations is applied to our data! 
   norm_data <- calcNormFactors(sub_data)
   expression.table <- as.data.frame(norm_data$counts)
+  cat("Done!")
+  
+  #### The final object is an expression table, with samples in columns and genes in rows! 
   return(expression.table)
   }
 
   ####################### To test the function ###########################
-  LUAD.exp <- task2(cancer_type = "TCGA-LUAD" , clinical.table = LUAD.table)
-  KIRK.exp <- task2(cancer_type = "TCGA-KIRC", clinical.table = KIRK.table)
-  HNSC.exp <- task2(cancer_type = "TCGA-HNSC", clinical.table = HNSC.table)
-  STAD.exp <- task2(cancer_type = "TCGA-STAD", clinical.table = STAD.table )
-  LUSC.exp <- task2(cancer_type = "TCGA-LUSC", clinical.table = LUSC.table)
-  KICH.exp <- task2(cancer_type = "TCGA-KICH", clinical.table = KICH.table)
-  SKCM.exp  <- task2(cancer_type = "TCGA-SKCM", clinical.table = SKCM.table )
-  KIRP.exp <- task2(cancer_type = "TCGA-KIRP", clinical.table = KIRP.table)
-  ESCA.exp <- task2(cancer_type = "TCGA-ESCA", clinical.table = ESCA.table)
+  LUAD.exp <- task2(cancer_type = "TCGA-LUAD" , clinical.table = LUAD.pts)
+  KIRK.exp <- task2(cancer_type = "TCGA-KIRC", clinical.table = KIRK.pts)
+  HNSC.exp <- task2(cancer_type = "TCGA-HNSC", clinical.table = HNSC.pts)
+  STAD.exp <- task2(cancer_type = "TCGA-STAD", clinical.table = STAD.pts)
+  LUSC.exp <- task2(cancer_type = "TCGA-LUSC", clinical.table = LUSC.pts)
+  KICH.exp <- task2(cancer_type = "TCGA-KICH", clinical.table = KICH.pts)
+  SKCM.exp  <- task2(cancer_type = "TCGA-SKCM", clinical.table = SKCM.pts)
+  KIRP.exp <- task2(cancer_type = "TCGA-KIRP", clinical.table = KIRP.pts)
+  ESCA.exp <- task2(cancer_type = "TCGA-ESCA", clinical.table = ESCA.pts)
 

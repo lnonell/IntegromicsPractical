@@ -143,7 +143,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     ## Filter 10% genes by standard deviation ##
     ############################################
     rna.f <- filterSD(df.rna)
-    cn.f <- filterSD(df.cn)
+    cn.f <- filterSD(n.cn)
     met.f <- filterSD(df.met)
     
     ## Set colnames order equal to task1 ##

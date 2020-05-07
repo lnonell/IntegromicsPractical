@@ -158,19 +158,19 @@ task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots = 4, rhovalue_sig
   
   # We erase the totalmean column from the data.frame if it exists
   if ("totalmean" %in% colnames(df_meth) == TRUE) {
-    df_meth.nototal <- subset(df_meth, select=-c(totalmean))
+    df_meth <- subset(df_meth, select=-c(totalmean))
     cat("\nErasing totalmean column...\n")
   }
   
   # To check if all samples are in the same order and correct it
-  if (all(colnames(df_mRNA)==colnames(df_meth.nototal)) == FALSE) {
-    df_mRNA.s<-df_mRNA[,colnames(df_meth)]
+  if (all(colnames(df_mRNA)==colnames(df_meth)) == FALSE) {
+    df_mRNA.s<-df_mRNA[colnames(df_meth),]
     cat("\nThe samples have been reorganized...\n")
   }
   
   
   # We remove any NaN data from both dataframes
-  df_meth <- df_meth.nototal[complete.cases(df_meth.nototal), ]
+  df_meth <- df_meth[complete.cases(df_meth), ]
   df_mRNA <- df_mRNA[complete.cases(df_mRNA), ]
   
   # We get all the common genes in both dataframes sorted

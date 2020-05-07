@@ -217,14 +217,20 @@ task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots = 4, rhovalue_sig
   pval.adj <- p.adjust(cor.table$pval,method = "fdr")
   cor.table$pval.adj <- as.vector(pval.adj)
   
+  # We set colors to best see signifcant values
+  cor.table$color <- "black"
+  cor.table$color[cor.table$pval.adj < pvalue_sig  & abs(cor.table$Rho) >= rhovalue_sig]="red"
+  #cor.table$color[abs(cor.table$Rho) >= rhovalue_sig]="blue"
+  
   # We make the Pvalue plots
   cat("\nCreating PDFs for the Pvalue plots...\n")
   pdf(file.path(paste(getwd(),results_dir,"pvalue_plots.pdf",sep="/")))
-  qqplot(x = cor.table$pval,y = cor.table$Rho, main = "P-value vs Rho plot")
-  qqplot(x = cor.table$pval.adj,y = cor.table$Rho, main = "Adjusted P-value vs Rho plot")
+  qqplot(x = cor.table$pval,y = cor.table$Rho, main = "P-value vs Rho plot",col = cor.table$color)
+  qqplot(x = cor.table$pval.adj,y = cor.table$Rho, main = "Adjusted P-value vs Rho plot",col = cor.table$color)
   dev.off()
   
   # We subset from the original correlation table to get significance
+  cor.table <- cor.table[,1:3]
   cor.sig.table <- subset(x = cor.table, abs(cor.table$Rho) >= rhovalue_sig & cor.table$pval.adj < pvalue_sig)
   
   # We order this table so we have the better adj.p value on top
@@ -244,7 +250,7 @@ task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots = 4, rhovalue_sig
       y <- as.vector(unlist(df_meth.c[gene.id,]))
       x <- as.vector(unlist(df_mRNA.c[gene.id,]))
       png(file.path(paste(getwd(),results_dir,paste(gene,"_mRNA_Meth_correlations.png",sep = ""),sep="/")))
-      plot(y,x,main=gene,xlab="Methilation Beta values",ylab="RNA expression",type="b",xlim=c(0,5000))
+      plot(y,x,main=gene,xlab="Methilation Beta values",ylab="RNA expression",type="b")
       dev.off()
     }
   } else {

@@ -97,7 +97,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     ## Obtain informative plots ##
     ##############################
     ## Create folder to store the plots 
-    dir.create(file.path(pth, "./MFA_Results"))
+    dir.create(file.path(pth, "./MFA_Results"),showWarnings = FALSE)
     # Group of variables
     fviz_mfa_var(res.cond, "group")
     ggsave(file="./MFA_Results/VariableGroupsMFA.png")
@@ -194,7 +194,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     ## Obtain informative plots ##
     ##############################
     ## Create folder to store the plots 
-    dir.create(file.path(pth, "./MFA_Results"))
+    dir.create(file.path(pth, "./MFA_Results"), showWarnings = FALSE)
     # Group of variables
     fviz_mfa_var(res.cond, "group")
     ggsave(file="./MFA_Results/VariableGroupsMFA.png")

@@ -155,6 +155,7 @@ task5.meth <- function(df_mRNA, df_meth, df_samples, num_plots = 4, rhovalue_sig
   
   # We put all samples on same format
   colnames(df_mRNA) <- gsub("-",".",colnames(df_mRNA))
+  colnames(df_meth) <- gsub("-",".",colnames(df_meth))
   
   # We erase the totalmean column from the data.frame if it exists
   if ("totalmean" %in% colnames(df_meth) == TRUE) {

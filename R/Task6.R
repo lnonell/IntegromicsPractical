@@ -3,7 +3,7 @@
 #input: files of task1, task2, task3, task4 + path for output files
 #outputs: dataframe 100 most correlated variables with PC1 and PC2 + MFA plots in png format
 
-task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
+task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = FALSE,...){
  
   ###########################
   ## Load needed libraries ##
@@ -138,7 +138,9 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(),...){
     
     ## Drop total mean column from methylation data ##
     ##################################################
-    df.met <- df.met[,-1]
+    if(mean.meth = TRUE) {
+      df.met <- df.met[,-1]
+    }
     
     ## Filter 10% genes by standard deviation ##
     ############################################

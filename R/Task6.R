@@ -203,7 +203,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     ggsave(file=paste(pth,"IndividualsMFA.png",sep ="/"))
     
     # Partial axes
-    fviz_mfa_axes(res.cond, palette = c("#00AFBB", "#E7B800", "#FC4E07"))
+    fviz_mfa_axes(res.cond, palette = c("#00AFBB","#999999", "#E7B800", "#FC4E07"))
     ggsave(file=paste(pth,"PartialAxesMFA.png",sep ="/"))
     cat("\nCheck MFA plots in your working directory or output path\n")
     ## Return 100 most correlated variables with 

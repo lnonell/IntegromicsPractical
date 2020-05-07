@@ -154,9 +154,10 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     cn.f <- cn.f[, order(match(colnames(cn.f), as.character(df_samples[,1])))]
     met.f <- met.f[, order(match(colnames(met.f), as.character(df_samples[,1])))]
     
-    if(identical(colnames(met.f),identical(colnames(rna.f), colnames(cn.f))) != TRUE){
-      stop(print("Samples are not the same"))
-    }
+    
+    if (all(sapply(list(colnames(rna.f),colnames(cn.f),colnames(met.f), df_samples[,1]), function(x) x == df_samples[,1])) == FALSE){
+      stop(print("Samples are not the same"))} 
+    
     
     ## Data preparation for MFA ##
     ##############################

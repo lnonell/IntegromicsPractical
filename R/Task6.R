@@ -138,7 +138,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     
     ## Drop total mean column from methylation data ##
     ##################################################
-    if(mean.meth = TRUE) {
+    if(mean.meth == TRUE) {
       df.met <- df.met[,-1]
     }
     

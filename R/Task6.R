@@ -92,7 +92,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     ## Apply MFA ##
     ###############
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l), type=c("n","c","c"), 
-                    ncp=5, name.group=c("cond","RNA","CN"),num.group.sup=c(1), graph = FALSE) 
+                    ncp=2, name.group=c("cond","RNA","CN"),num.group.sup=c(1), graph = FALSE) 
     
     ## Obtain informative plots ##
     ##############################
@@ -189,7 +189,7 @@ task6 <- function(df_samples, df.rna, df.cn, df.met, pth = getwd(), mean.meth = 
     ## Apply MFA ##
     ###############
     res.cond <- MFA(data4Facto, group=c(1,rna.l,cn.l,met.l), type=c("n","c","c","c"), 
-                    ncp=5, name.group=c("cond","RNA","CN","MET"),num.group.sup=c(1), graph = FALSE) 
+                    ncp=2, name.group=c("cond","RNA","CN","MET"),num.group.sup=c(1), graph = FALSE) 
     
     ## Obtain informative plots ##
     ##############################

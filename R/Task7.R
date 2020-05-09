@@ -4,7 +4,13 @@ getwd()
 # Input: Data-frames with mRNA, CN and methylation data and destination path. 
 # Output: Inoformative graphs and the 100 most correlated variables.
 
-task7<-function(Cancer_table, mRNA, CNV, Methylation){
+mRNA <- ESCA.mrna
+CNV <- ESCA.cn
+Cancer_table <- ESCA.pts
+Methylation <- ESCA.meth
+
+
+task7<-function(Cancer_table, mRNA, CNV, Methylation,cutoff_circos=0.7){
   
   ################
   #Load libraries#
@@ -74,152 +80,149 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
     
     # Select the 10% of the genes with the highest standard deviation for each of the 3 data types #
     
-    SD<-apply(mRNA,1,sd)
-    top.10sd<-head(sort(SD,decreasing=TRUE),round(length(SD)/10))
-    mRNA.f <- mRNA[names(top.10sd),]
-    
-    SD<-apply(CNV,1,sd)
-    top.10sd<-head(sort(SD,decreasing=TRUE),round(length(SD)/10))
-    CNV.f <- CNV[names(top.10sd),]
-    
-    
-    #######################
-    #STEP 2: APPLY  DIABLO#
-    #######################
+      SD<-apply(mRNA,1,sd)
+      top.10sd<-head(sort(SD,decreasing=TRUE),round(length(SD)/10))
+      mRNA.f <- mRNA[names(top.10sd),]
+      
+      SD<-apply(CNV,1,sd)
+      top.10sd<-head(sort(SD,decreasing=TRUE),round(length(SD)/10))
+      CNV.f <- CNV[names(top.10sd),]
     
     
-    
-    # List of data sets #
-    
-    data = list(mRNA = t(mRNA.f),
-                CNV = t(CNV.f))
-    
-    
-    # Set Y to compare stage i vs stage iv #
-    
-    Y=as.factor(Cancer_table$tumor_stage)
-    
-    design = matrix(0.1, ncol = length(data), nrow = length(data), 
-                    dimnames = list(names(data), names(data)))
-    lapply(data,dim)
-    Y
-    diag(design) = 0 # To avoid analyzing an experiment against itself
-    design
-    
-    
-    sgccda.res = block.splsda(X = data, Y = Y, ncomp = 5, design = design) # Classifies a discrete outcome through the integration of 
-    # multiple datasets selecting features from each data set, using a PLS-DA model
-    
-    
-    # Evaluate performance of the PLS-DA model #
-    
-    set.seed(12345)
-    
-    perf.diablo = perf(sgccda.res, validation = 'Mfold', folds = 10, nrepeat = 10)
-    
-    print("Saving results in Diablo Results folder in your working directory")
-    dir.create(file.path(getwd(), "./Diablo Results"), showWarnings = FALSE)
-    png("./Diablo Results/Diablo first model performance.png")
-    plot(perf.diablo) # Components that exaplain most of the variability
-    dev.off()
-    
-    ncomp = 2
-    
-    # Tune the keepX parameters obtained with the block.splsda function #
-    
-    s.keep <- sort(sample(1:length(rownames(Cancer_table)),5))
-    test.keepX = list(mRNA = s.keep, CNV =s.keep)
-    
-    
-    # Computes M-fold scores based on a user-input grid to determine the optimal parsity parameters #
-    
-    tune.TCGA = tune.block.splsda(X = data, Y = Y, ncomp = 2,
-                                  test.keepX = test.keepX, design = design,
-                                  validation = 'Mfold', folds = 10, nrepeat = 1,
-                                  cpus = 4, dist = "centroids.dist")
-    
-    list.keepX = tune.TCGA$choice.keepX
-    
-    
-    # Apply method with tunned params #
-    sgccda.res = block.splsda(X = data, Y = Y, ncomp = ncomp, 
-                              keepX = list.keepX, design = design)
-    
-    sgccda.res$design
-    
-    
-    ################
-    #STEP3: RESULTS#
-    ################
-    
-    # Component 1 #
-    
-    varm1 <- head(selectVar(sgccda.res, comp = 1)$mRNA$value,100)
-    varcnv1 <- head(selectVar(sgccda.res, comp = 1)$CNV$value,100)
-    
-    data.table1 <- rbind(varm1, varcnv1)
-    data.table1 <- cbind(data.table1, rownames(data.table1))
-    data.table1 <- data.table1[order(abs(data.table1$value.var), decreasing = TRUE),]
-    colnames(data.table1) <- c("value.var1", "Genes")
-    
-    
-    # Component 2 #
-    
-    varm2 <- head(selectVar(sgccda.res, comp = 2)$mRNA$value,100)
-    varcnv2 <- head(selectVar(sgccda.res, comp = 2)$CNV$value,100)
-    
-    data.table2 <- rbind(varm2, varcnv2)
-    data.table2 <- cbind(data.table2, rownames(data.table2))
-    data.table2 <- data.table2[order(abs(data.table2$value.var), decreasing = TRUE),]
-    colnames(data.table2) <- c("value.var2", "Genes")
-    
-    
-    if (nrow(data.table1) > 100) {
-      data.table1 <- data.table1[1:100,]}
-    
-    if (nrow(data.table2) > 100) {
-      data.table2 <- data.table2[1:100,]}
-    
-    ###############
-    #STEP4: PLOTS#
-    ###############
-    
-    png("./Diablo Results/Diablo correlation first component.png")
-    plotDiablo(sgccda.res, ncomp = 1)
-    dev.off()
-    
-    png("./Diablo Results/Diablo correlation second component.png")
-    plotDiablo(sgccda.res, ncomp = 2)
-    dev.off()
-    
-    png("./Diablo Results/Arrow plot samples.png")
-    plotArrow(sgccda.res, ind.names = FALSE, legend = TRUE, title = 'DIABLO')
-    dev.off()
-    
-    png("./Diablo Results/Correlation circle plot.png")
-    plotVar(sgccda.res, var.names = FALSE, style = 'graphics', legend = TRUE, 
-            pch = c(15,16), cex = c(2,2), col = c('darkorchid', 'lightgreen'))
-    dev.off()
-    
-    png("./Diablo Results/Loading vectors barplots component 1")
-    plotLoadings(sgccda.res, comp = 1, contrib = 'max', method = 'median')
-    dev.off()
-    
-    png("./Diablo Results/Loading vectors barplots component 2")
-    plotLoadings(sgccda.res, comp = 2, contrib = 'max', method = 'median')
-    dev.off()
-    
-    png("./Diablo Results/Circus Plot.png")
-    circosPlot(sgccda.res, cutoff = 0.9, line = TRUE, 
-               color.blocks= c('darkorchid', 'brown1', 'lightgreen'),
-               color.cor = c("chocolate3","grey20"), size.labels = 1.5, size.variables = 0.5)
-    dev.off()
-    
-    png("./Diablo Results/Heat map.png")
-    cimDiablo(sgccda.res, size.legend = 0.5, legend.position = "topright", margins = c(20,10))
-    dev.off()
-    
-    return(list(data.table1, data.table2))
+      #######################
+      #STEP 2: APPLY  DIABLO#
+      #######################
+      
+      
+      
+      # List of data sets #
+      
+      data = list(mRNA = t(mRNA.f),
+                  CNV = t(CNV.f))
+      
+      
+      # Set Y to compare stage i vs stage iv #
+      
+      Y=as.factor(Cancer_table$tumor_stage)
+      
+      design = matrix(0.1, ncol = length(data), nrow = length(data), 
+                      dimnames = list(names(data), names(data)))
+      lapply(data,dim)
+      diag(design) = 0 # To avoid analyzing an experiment against itself
+      
+      
+      sgccda.res = block.splsda(X = data, Y = Y, ncomp = 5, design = design) # Classifies a discrete outcome through the integration of 
+      # multiple datasets selecting features from each data set, using a PLS-DA model
+      
+      
+      # Evaluate performance of the PLS-DA model #
+      
+      set.seed(12345)
+      
+      perf.diablo = perf(sgccda.res, validation = 'Mfold', folds = 10, nrepeat = 10)
+      
+      print("Saving results in Diablo Results folder in your working directory")
+      dir.create(file.path(getwd(), "./Diablo Results"), showWarnings = FALSE)
+      png(filename="./Diablo Results/Diablo first model performance.png",width=1000,height=1000,pointsize = 20)
+      plot(perf.diablo) # Components that exaplain most of the variability
+      dev.off()
+      
+      ncomp = 2
+      
+      # Tune the keepX parameters obtained with the block.splsda function #
+      
+      s.keep <- sort(sample(1:length(rownames(Cancer_table)),5))
+      test.keepX = list(mRNA = s.keep, CNV =s.keep)
+      
+      
+      # Computes M-fold scores based on a user-input grid to determine the optimal parsity parameters #
+      
+      tune.TCGA = tune.block.splsda(X = data, Y = Y, ncomp = 2,
+                                    test.keepX = test.keepX, design = design,
+                                    validation = 'Mfold', folds = 10, nrepeat = 1,
+                                    cpus = 4, dist = "centroids.dist")
+      
+      list.keepX = tune.TCGA$choice.keepX
+      
+      
+      # Apply method with tunned params #
+      sgccda.res = block.splsda(X = data, Y = Y, ncomp = ncomp, 
+                                keepX = list.keepX, design = design)
+  
+      
+      
+      ################
+      #STEP3: RESULTS#
+      ################
+      
+      # Component 1 #
+      
+      varm1 <- head(selectVar(sgccda.res, comp = 1)$mRNA$value,100)
+      varcnv1 <- head(selectVar(sgccda.res, comp = 1)$CNV$value,100)
+      
+      data.table1 <- rbind(varm1, varcnv1)
+      data.table1 <- cbind(data.table1, rownames(data.table1))
+      data.table1 <- data.table1[order(abs(data.table1$value.var), decreasing = TRUE),]
+      colnames(data.table1) <- c("value.var1", "Genes")
+      
+      
+      # Component 2 #
+      
+      varm2 <- head(selectVar(sgccda.res, comp = 2)$mRNA$value,100)
+      varcnv2 <- head(selectVar(sgccda.res, comp = 2)$CNV$value,100)
+      
+      data.table2 <- rbind(varm2, varcnv2)
+      data.table2 <- cbind(data.table2, rownames(data.table2))
+      data.table2 <- data.table2[order(abs(data.table2$value.var), decreasing = TRUE),]
+      colnames(data.table2) <- c("value.var2", "Genes")
+      
+      
+      if (nrow(data.table1) > 100) {
+        data.table1 <- data.table1[1:100,]}
+      
+      if (nrow(data.table2) > 100) {
+        data.table2 <- data.table2[1:100,]}
+      
+      ###############
+      #STEP4: PLOTS#
+      ###############
+      
+      png(filename = "./Diablo Results/Diablo correlation first component.png",width=1000,height=1000,pointsize = 30)
+      plotDiablo(sgccda.res, ncomp = 1)
+      dev.off()
+      
+      png(filename = "./Diablo Results/Diablo correlation second component.png",width=1000,height=1000,pointsize = 30)
+      plotDiablo(sgccda.res, ncomp = 2)
+      dev.off()
+      
+      png(filename = "./Diablo Results/Arrow plot samples.png",width=1000,height=1000,pointsize = 30)
+      plotArrow(sgccda.res, ind.names = FALSE, legend = TRUE, title = 'DIABLO')
+      dev.off()
+      
+      png(filename = "./Diablo Results/Correlation circle plot.png",width=1000,height=1000,pointsize = 15)
+      plotVar(sgccda.res, var.names = FALSE, style = 'graphics', legend = TRUE, 
+              pch = c(15,16), cex = c(2,2), col = c('darkorchid', 'lightgreen'))
+      dev.off()
+      
+      png(filename = "./Diablo Results/Loading vectors barplots component 1",width=1000,height=1000,pointsize = 20)
+      plotLoadings(sgccda.res, comp = 1, contrib = 'max', method = 'median')
+      dev.off()
+      
+      png(filename = "./Diablo Results/Loading vectors barplots component 2",width=1000,height=1000,pointsize = 20)
+      plotLoadings(sgccda.res, comp = 2, contrib = 'max', method = 'median')
+      dev.off()
+      
+      png(filename = "./Diablo Results/Circus Plot.png",width=2000,height=2000,pointsize = 30)
+      circosPlot(sgccda.res, cutoff = cutoff_circos, line = TRUE, 
+                 color.blocks= c('darkorchid', 'brown1'),
+                 color.cor = c("chocolate3","grey20"), size.labels = 2, size.variables = 1, size.legend = 1.2)
+      dev.off()
+      
+      png(filename = "./Diablo Results/Heatmap.png",width=2000,height=1000,pointsize = 30)
+      cimDiablo(sgccda.res, size.legend = 0.8, legend.position = "topright", margins = c(8,18))
+      dev.off()
+      
+      return(list(data.table1, data.table2))
     
   } else {
     print("Methyltion data introduced")
@@ -346,7 +349,7 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
     
     print("Saving results in Diablo Results folder in your working directory")
     dir.create(file.path(getwd(), "./Diablo Results"), showWarnings = FALSE)
-    png("./Diablo Results/Diablo first model performance.png")
+    png(filename="./Diablo Results/Diablo first model performance.png",width=1000,height=1000,pointsize = 20)
     plot(perf.diablo) # Components that exaplain most of the variability
     dev.off()
     
@@ -413,40 +416,39 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
     #STEP4: PLOTS#
     ##############
     
-    png("./Diablo Results/Diablo correlation first component.png")
+    png(filename="./Diablo Results/Diablo correlation first component.png",width=1000,height=1000,pointsize = 30)
     plotDiablo(sgccda.res, ncomp = 1)
     dev.off()
     
-    png("./Diablo Results/Diablo correlation second component.png")
+    png(filename="./Diablo Results/Diablo correlation second component.png",width=1000,height=1000,pointsize = 30)
     plotDiablo(sgccda.res, ncomp = 2)
     dev.off()
     
-    png("./Diablo Results/Arrow plot samples.png")
+    png(filename="./Diablo Results/Arrow plot samples.png",width=1000,height=1000,pointsize = 30)
     plotArrow(sgccda.res, ind.names = FALSE, legend = TRUE, title = 'DIABLO')
     dev.off()
     
-    png("./Diablo Results/Correlation circle plot.png")
+    png(filename="./Diablo Results/Correlation circle plot.png",width=1000,height=1000,pointsize = 15)
     plotVar(sgccda.res, var.names = FALSE, style = 'graphics', legend = TRUE, 
             pch = c(15,16, 17), cex = c(2,2,2), col = c('darkorchid', 'lightgreen',"red"))
     dev.off()
     
-    png("./Diablo Results/Loading vectors barplots component 1.png")
+    png(filename="./Diablo Results/Loading vectors barplots component 1.png",width=1000,height=1000,pointsize = 20)
     plotLoadings(sgccda.res, comp = 1, contrib = 'max', method = 'median')
     dev.off()
     
-    png("./Diablo Results/Loading vectors barplots component 2.png")
+    png(filename="./Diablo Results/Loading vectors barplots component 2.png",width=1000,height=1000,pointsize = 20)
     plotLoadings(sgccda.res, comp = 2, contrib = 'max', method = 'median')
     dev.off()
     
-    png("./Diablo Results/Circus Plot.png")
-    circosPlot(sgccda.res, cutoff = 0.9, line = TRUE, 
+    png(filename="./Diablo Results/Circus Plot.png",width=2000,height=2000, pointsize = 30)
+    circosPlot(sgccda.res, cutoff = cutoff_circos, line = TRUE, 
                color.blocks= c('darkorchid', 'brown1', 'lightgreen'),
-               color.cor = c("chocolate3","grey20"), size.labels = 0.5, size.variables = 0.5)
+               color.cor = c("chocolate3","grey20"), size.labels = 2, size.variables = 1, size.legend = 1.2)
     dev.off()
     
-    
-    png("./Diablo Results/Heatmap.png")
-    cimDiablo(sgccda.res, size.legend = 0.5, legend.position = "topright", margins = c(20,10))
+    png(filename="./Diablo Results/Heatmap.png",width=2000,height=1000,pointsize = 30)
+    cimDiablo(sgccda.res, size.legend = 0.8, legend.position = "topright", margins = c(8, 18))
     dev.off()
     
     return(list(data.table1, data.table2))

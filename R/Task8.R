@@ -158,6 +158,6 @@ task8(STAD.pts)
 task8(LUSC.pts)
 task8(KICH.pts)
 task8(SKCM.pts, mrna = SKCM.exp, cnv = SKCM.cnv, meth = SKCM.meth, cor.cnv = SKCM.cnv.corr, cor.meth = SKCM.meth.corr, path = getwd())
-task8(KIRP.pts)
+task8(df_samples = KIRP.pts,mrna = KIRP.exp,cnv = KIRP.cnv,meth = KIRP.meth,cor.cnv = KIRP.cnv.corr,cor.meth = KIRP.meth.corr)
 task8(ESCA.pts)
 

@@ -201,10 +201,22 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
             pch = c(15,16), cex = c(2,2), col = c('darkorchid', 'lightgreen'))
     dev.off()
     
-    #plotLoadings(sgccda.res, comp = 2, contrib = 'max', method = 'median')
+    png("./Diablo Results/Loading vectors barplots component 1")
+    plotLoadings(sgccda.res, comp = 1, contrib = 'max', method = 'median')
+    dev.off()
     
-    png("./Diablo Results/cim.png")
-    cimDiablo(sgccda.res, size.legend = 0.5, legend.position = "topright", margins = c(10,15))
+    png("./Diablo Results/Loading vectors barplots component 2")
+    plotLoadings(sgccda.res, comp = 2, contrib = 'max', method = 'median')
+    dev.off()
+    
+    png("./Diablo Results/Circus Plot.png")
+    circosPlot(sgccda.res, cutoff = 0.9, line = TRUE, 
+               color.blocks= c('darkorchid', 'brown1', 'lightgreen'),
+               color.cor = c("chocolate3","grey20"), size.labels = 1.5, size.variables = 0.5)
+    dev.off()
+    
+    png("./Diablo Results/Heat map.png")
+    cimDiablo(sgccda.res, size.legend = 0.5, legend.position = "topright", margins = c(20,10))
     dev.off()
     
     return(list(data.table1, data.table2))
@@ -397,9 +409,9 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
     if (nrow(data.table2) > 100) {
       data.table2 <- data.table2[1:100,]}
     
-    ###############
+    ##############
     #STEP4: PLOTS#
-    ###############
+    ##############
     
     png("./Diablo Results/Diablo correlation first component.png")
     plotDiablo(sgccda.res, ncomp = 1)
@@ -418,10 +430,23 @@ task7<-function(Cancer_table, mRNA, CNV, Methylation){
             pch = c(15,16, 17), cex = c(2,2,2), col = c('darkorchid', 'lightgreen',"red"))
     dev.off()
     
-    #plotLoadings(sgccda.res, comp = 2, contrib = 'max', method = 'median')
+    png("./Diablo Results/Loading vectors barplots component 1.png")
+    plotLoadings(sgccda.res, comp = 1, contrib = 'max', method = 'median')
+    dev.off()
     
-    png("./Diablo Results/cim.png")
-    cimDiablo(sgccda.res, size.legend = 0.5, legend.position = "topright", margins = c(10,15))
+    png("./Diablo Results/Loading vectors barplots component 2.png")
+    plotLoadings(sgccda.res, comp = 2, contrib = 'max', method = 'median')
+    dev.off()
+    
+    png("./Diablo Results/Circus Plot.png")
+    circosPlot(sgccda.res, cutoff = 0.9, line = TRUE, 
+               color.blocks= c('darkorchid', 'brown1', 'lightgreen'),
+               color.cor = c("chocolate3","grey20"), size.labels = 0.5, size.variables = 0.5)
+    dev.off()
+    
+    
+    png("./Diablo Results/Heatmap.png")
+    cimDiablo(sgccda.res, size.legend = 0.5, legend.position = "topright", margins = c(20,10))
     dev.off()
     
     return(list(data.table1, data.table2))

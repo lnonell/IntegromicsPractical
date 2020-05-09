@@ -27,4 +27,7 @@ Results_CNV/
 .DNAmeth.rda.icloud
 .ob.RData.icloud
 Diablo Results/
-
+ESCA.cnv.corr.RData
+ESCA.meth.corr.RData
+ESCA.mixomics.RData
+circosplot.pdf

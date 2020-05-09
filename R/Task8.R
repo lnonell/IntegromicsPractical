@@ -5,7 +5,8 @@
 #output: Circos plot in specified format. 
 
 
-task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth, cor.meth.sig = 3, path = getwd()){
+
+task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth, cor.meth.sig = 3, sd_mrna = 0.01, sd_cnv = 1, sd_meth = 0.01,path = getwd()){
   
   #library
   suppressPackageStartupMessages(library(OmicCircos))
@@ -21,15 +22,15 @@ task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth,
   cat("\nfilter 10% genes by highest sd.\n")
   
   sd <- apply(mrna,1,sd)
-  sd10 <- head(sort(sd,decreasing = TRUE), round(nrow(mrna)*0.1))
+  sd10 <- head(sort(sd,decreasing = TRUE), round(nrow(mrna)*sd_mrna))
   exp_final <- mrna[names(sd10),]
   
   sd <- apply(cnv,1,sd)
-  sd10 <- head(sort(sd,decreasing = TRUE), round(nrow(cnv)*0.1))
+  sd10 <- head(sort(sd,decreasing = TRUE), round(nrow(cnv)*sd_cnv))
   cnv_final <- cnv[names(sd10),]
   
   sd <- apply(meth,1,sd)
-  sd10 <- head(sort(sd,decreasing = TRUE), round(nrow(meth)*0.1))
+  sd10 <- head(sort(sd,decreasing = TRUE), round(nrow(meth)*sd_meth))
   meth_final <- meth[names(sd10),]
   
   
@@ -117,7 +118,7 @@ task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth,
   sig.pvalue.exp.meth[,5] <- rownames(sig.pvalue.exp.meth)
   
   circ.exp <- data.frame("chr"=gene.pos.exp$chromosome_name,"Start"=as.integer(gene.pos.exp$start_position),
-                         "End"=as.integer(gene.pos.exp$end_position),log2(exp_final+0.00001),row.names=NULL)
+                         "End"=as.integer(gene.pos.exp$end_position),log2(exp_final+1),row.names=NULL)
   circ.meth <- data.frame("chr"=gene.pos.meth$chromosome_name,"Start"=as.integer(gene.pos.meth$start_position),
                           "End"=as.integer(gene.pos.meth$end_position),meth_final,row.names=NULL)
   

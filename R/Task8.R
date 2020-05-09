@@ -5,7 +5,7 @@
 #output: Circos plot in specified format. 
 
 
-task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth, cor.meth.sig = 3, path = getwd(), genes = genes){
+task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth, cor.meth.sig = 3, path = getwd()){
   
   #library
   suppressPackageStartupMessages(library(OmicCircos))

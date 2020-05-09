@@ -101,7 +101,7 @@ task4<-function(cancer, df_samples, total.mean=FALSE){
   genes.info_df$chr<-unfactor(genes.info_df$chr)
   
   dropchr <- function(x) {  
-    substr(x,4,4)
+    substring(x,4)
     }
   
   genes.info_df$chr<-sapply(genes.info_df$chr, dropchr)
@@ -184,6 +184,7 @@ task4<-function(cancer, df_samples, total.mean=FALSE){
                                  by = list(clean_df$GeneSymbol), 
                                  FUN = mean.na)
   
+  agg_df<-na.omit(agg_df)
   rownames(agg_df)<-agg_df$Group.1
   drops <- "Group.1"
   agg_df<-agg_df[ , !(names(agg_df) %in% drops)]

@@ -115,8 +115,9 @@ task4<-function(cancer, df_samples, total.mean=FALSE){
   cat("\nFinding overlaps between the annotation and our methylation probes.\n")
   
   #make GRanges from annotation
+  genes$end_position<-genes$start_position
+  genes$start_position<-genes$start_position-3000
   colnames(genes) <- c("chr","start", "end", "GeneSymbol")
-  genes$start<-genes$start-3000
   genes_GR <- makeGRangesFromDataFrame(genes,keep.extra.columns = TRUE)
   
   #make GRanges object from the tibble

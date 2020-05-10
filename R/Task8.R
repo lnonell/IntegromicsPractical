@@ -67,11 +67,21 @@ task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth,
   drops <- c("hgnc_symbol")
   gene.pos.cnv <- gene.pos.cnv[ , !(names(gene.pos.cnv) %in% drops)]
   cnv_final <- cnv_final[common.gene.cnv,]
+  n_stagei <- sum(df_samples$tumor_stage=='stage i')
+  n_stageiv <- sum(df_samples$tumor_stage=='stage iv')
+  cnv_final.stagei <- cnv_final[,c(1:n_stagei)]
+  cnv_final.stageiv <- cnv_final[,c((n_stagei+1):(n_stagei+n_stageiv))]
   
-  cnv.m <- merge(gene.pos.cnv, cnv_final, by=0, all=TRUE)  # merge by row names (by=0 or by="row.names")
-  cnv.m[is.na(cnv.m)] <- 0                 # replace NA values
-  cnv <- cnv.m[,-1]
-  rownames(cnv) <- cnv.m[,1]
+  cnv.stagei.m <- merge(gene.pos.cnv, cnv_final.stagei, by=0, all=TRUE)  # merge by row names (by=0 or by="row.names")
+  cnv.stagei.m[is.na(cnv.stagei.m)] <- 0                 # replace NA values
+  cnv.stagei <- cnv.stagei.m[,-1]
+  rownames(cnv.stagei) <- cnv.stagei.m[,1]
+  
+  cnv.stageiv.m <- merge(gene.pos.cnv, cnv_final.stageiv, by=0, all=TRUE)  # merge by row names (by=0 or by="row.names")
+  cnv.stageiv.m[is.na(cnv.stageiv.m)] <- 0                 # replace NA values
+  cnv.stageiv <- cnv.stageiv.m[,-1]
+  rownames(cnv.stageiv) <- cnv.stageiv.m[,1]
+
   
   #Meth
   common.gene.meth <- intersect(row.names(genes), row.names(meth_final))
@@ -128,10 +138,11 @@ task8<-function(df_samples, mrna, cnv, meth, cor.cnv, cor.cnv.sig = 3, cor.meth,
   options(stringsAsFactors = FALSE)
   par(mar=c(2, 2, 2, 2));
   plot(c(1,800), c(1,800), type="n", axes=F, xlab="", ylab="", main="");
-  circos(R=400, cir="hg19", W=4,   type="chr", print.chr.lab=T, scale=T);
-  circos(R=300, cir="hg19", W=100,  mapping=circ.exp,   col.v=4,    type="heatmap2",B=FALSE, cluster=FALSE, col.bar=F, lwd=0.1, col="blue");
-  circos(R=120, cir="hg19", W=80,  mapping=cnv,   col.v=4,   type="ml3", B=FALSE, lwd=1, cutoff=0);
-  circos(R=200, cir="hg19", W=100,  mapping=circ.meth,   col.v=4, type="heatmap2",B=FALSE, cluster=FALSE, col.bar=F, lwd=0.1, col="blue")
+  circos(R=400, cir="hg19", W=3,   type="chr", print.chr.lab=T, scale=T);
+  circos(R=320, cir="hg19", W=75,  mapping=circ.exp,   col.v=4,    type="heatmap2",B=FALSE, cluster=FALSE, col.bar=F, lwd=0.1, col="blue");
+  circos(R=240, cir="hg19", W=75,  mapping=circ.meth,   col.v=4, type="heatmap2",B=FALSE, cluster=FALSE, col.bar=F, lwd=0.1, col="blue")
+  circos(R=160, cir="hg19", W=75,  mapping=cnv.stagei,   col.v=4,   type="ml3", B=FALSE, lwd=1, cutoff=0);
+  circos(R=120, cir="hg19", W=75,  mapping=cnv.stageiv,   col.v=4,   type="ml3", B=FALSE, lwd=1, cutoff=0);
   colors <- rainbow( 1 , start=0, end = 1, alpha=0.5 )
   circos(R=90, cir="hg18", W=40,  mapping=pvalue.exp.cnv,  col.v=4,    type="s",   B=FALSE, lwd=0.1, col=colors, cex=0.2)
   colors <- rainbow( 1 , start = 0.7, end = 1, alpha=0.5 )
@@ -160,5 +171,16 @@ task8(LUSC.pts)
 task8(KICH.pts)
 task8(SKCM.pts, mrna = SKCM.exp, cnv = SKCM.cnv, meth = SKCM.meth, cor.cnv = SKCM.cnv.corr, cor.meth = SKCM.meth.corr, path = getwd())
 task8(df_samples = KIRP.pts,mrna = KIRP.exp,cnv = KIRP.cnv,meth = KIRP.meth,cor.cnv = KIRP.cnv.corr,cor.meth = KIRP.meth.corr)
-task8(ESCA.pts)
+task8(df_samples=ESCA.pts, mrna=ESCA.mrna, cnv=ESCA.cn, meth=ESCA.meth, cor.cnv=ESCA.cnv.corr, cor.cnv.sig = 1, cor.meth=ESCA.meth.corr, cor.meth.sig = 3, sd_mrna = 0.01, sd_cnv = 1, sd_meth = 0.01)
 
+df_samples <- ESCA.pts
+mrna <- ESCA.mrna
+cnv <- ESCA.cn
+meth <- ESCA.meth
+cor.cnv <- ESCA.cnv.corr
+cor.cnv.sig <- 1
+cor.meth <- ESCA.meth.corr
+cor.meth.sig <- 3
+sd_mrna <- 0.01
+sd_cnv <- 1
+sd_meth <- 0.01

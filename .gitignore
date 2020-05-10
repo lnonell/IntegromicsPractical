@@ -19,9 +19,7 @@ ESCA.meth.RData
 Results_Meth/
 SKCM.meth.RData
 DNAmeth.rda
-IndividualsMFA.png
-PartialAxesMFA.png
-VariableGroupsMFA.png
+Results_MFA/
 Results_CNV/
 .DNAmeth 2.rda.icloud
 .DNAmeth.rda.icloud
@@ -31,3 +29,9 @@ ESCA.cnv.corr.RData
 ESCA.meth.corr.RData
 ESCA.mixomics.RData
 circosplot.pdf
+InteractomicsPracticalMSG.Rmd
+ESCA.mfa.RData
+ESCA.mixomics2.RData
+ESCA.mixomics3.RData
+ESCA.mixomics4.RData
+ESCA.mixomics5.RData

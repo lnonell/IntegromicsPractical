@@ -3,7 +3,7 @@
 #input: Data frame with the prepared clinical data from task 1, plus the cancer code from TCGA.
 #output: Data frame with samples in columns and genes (HUGO Symbol) in rows containing the beta values mean of each gene and sample.
 
-task4<-function(cancer, df_samples, total.mean=FALSE, only.promoter=TRUE){
+task4<-function(cancer, df_samples, total.mean=FALSE, only.promoter=FALSE){
   
   stopifnot(is.character(cancer))
   stopifnot(is.data.frame(df_samples))
@@ -215,11 +215,6 @@ task4<-function(cancer, df_samples, total.mean=FALSE, only.promoter=TRUE){
     df_ann <- cbind(genes.info_df[queryHits(hits),],genes[subjectHits(hits),])
     drops <- c("chr","start","end","gene_name","position_to_TSS")
     clean_df<-df_ann[ , !(names(df_ann) %in% drops)]
-    
-    
-    
-    
-    
     
     clean_df<-clean_df[moveme(names(clean_df), "GeneSymbol first")]
     

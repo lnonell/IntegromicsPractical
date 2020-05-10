@@ -3,7 +3,7 @@
 #input: Data frame with the prepared clinical data from task 1, plus the cancer code from TCGA.
 #output: Data frame with samples in columns and genes (HUGO Symbol) in rows containing the beta values mean of each gene and sample.
 
-task4<-function(cancer, df_samples, total.mean=FALSE){
+task4<-function(cancer, df_samples, total.mean=FALSE, only.promoter=TRUE){
   
   stopifnot(is.character(cancer))
   stopifnot(is.data.frame(df_samples))
@@ -111,29 +111,6 @@ task4<-function(cancer, df_samples, total.mean=FALSE){
   ########################################################
   #4. Finding overlaps
   ########################################################
-  
-  cat("\nFinding overlaps between the annotation and our methylation probes.\n")
-  
-  #make GRanges from annotation
-  genes$end_position<-genes$start_position
-  genes$start_position<-genes$start_position-3000
-  colnames(genes) <- c("chr","start", "end", "GeneSymbol")
-  genes_GR <- makeGRangesFromDataFrame(genes,keep.extra.columns = TRUE)
-  
-  #make GRanges object from the tibble
-  df_GR <- makeGRangesFromDataFrame(genes.info_df[,c(1,2,3)])#we only take chr, start and end to do the overlap
-  
-  #overlap the annotation with the cpgs
-  hits <- findOverlaps(df_GR,genes_GR, type="within") #hits found
-  
-  cat("\nCreating data frame of useful and annotated cpgs.\n")
-  
-  df_ann <- cbind(genes.info_df[queryHits(hits),],genes[subjectHits(hits),])
-  drops <- c("chr","start","end","gene_name","position_to_TSS")
-  clean_df<-df_ann[ , !(names(df_ann) %in% drops)]
-  
-  
-  
   #Function to move the last column to the first one, by StackOverflow user: A5C1D2H2I1M1N2O1R2T1
   moveme <- function (invec, movecommand) {
     movecommand <- lapply(strsplit(strsplit(movecommand, ";")[[1]], 
@@ -168,39 +145,117 @@ task4<-function(cancer, df_samples, total.mean=FALSE){
     myVec
   }
   
+  cat("\nFinding overlaps between the annotation and our methylation probes.\n")
   
-  clean_df<-clean_df[moveme(names(clean_df), "GeneSymbol first")]
-  
-  ########################################################
-  #4. Agregation of beta value means
-  ########################################################
-  
-  cat("\nAggregating cpg values by gene.\n")
-  
-  mean.na<-function(x){
-    mean(x, na.rm = TRUE)
+  if (only.promoter==TRUE){
+    #make GRanges from annotation
+    genes$end_position<-genes$start_position
+    genes$start_position<-genes$start_position-3000
+    colnames(genes) <- c("chr","start", "end", "GeneSymbol")
+    genes_GR <- makeGRangesFromDataFrame(genes,keep.extra.columns = TRUE)
+    
+    #make GRanges object from the tibble
+    df_GR <- makeGRangesFromDataFrame(genes.info_df[,c(1,2,3)])#we only take chr, start and end to do the overlap
+    
+    #overlap the annotation with the cpgs
+    hits <- findOverlaps(df_GR,genes_GR, type="within") #hits found
+    
+    cat("\nCreating data frame of useful and annotated cpgs.\n")
+    
+    df_ann <- cbind(genes.info_df[queryHits(hits),],genes[subjectHits(hits),])
+    drops <- c("chr","start","end","gene_name","position_to_TSS")
+    clean_df<-df_ann[ , !(names(df_ann) %in% drops)]
+    
+    clean_df<-clean_df[moveme(names(clean_df), "GeneSymbol first")]
+    
+    ########################################################
+    #4. Agregation of beta value means
+    ########################################################
+    
+    cat("\nAggregating cpg values by gene.\n")
+    
+    mean.na<-function(x){
+      mean(x, na.rm = TRUE)
+    }
+    
+    agg_df <- aggregate(x = clean_df[2:ncol(clean_df)], 
+                        by = list(clean_df$GeneSymbol), 
+                        FUN = mean.na)
+    
+    agg_df<-na.omit(agg_df)
+    rownames(agg_df)<-agg_df$Group.1
+    drops <- "Group.1"
+    agg_df<-agg_df[ , !(names(agg_df) %in% drops)]
+    colnames(agg_df)<-gsub("\\.","-", colnames(agg_df))
+    
+    if (total.mean==FALSE){
+      return(agg_df)
+    } else {
+      totalmean<-apply(agg_df, 1, mean)
+      agg_df<-cbind(totalmean, agg_df)
+      return(agg_df)
+    }
+    
   }
   
-  agg_df <- aggregate(x = clean_df[2:ncol(clean_df)], 
-                                 by = list(clean_df$GeneSymbol), 
-                                 FUN = mean.na)
-  
-  agg_df<-na.omit(agg_df)
-  rownames(agg_df)<-agg_df$Group.1
-  drops <- "Group.1"
-  agg_df<-agg_df[ , !(names(agg_df) %in% drops)]
-  colnames(agg_df)<-gsub("\\.","-", colnames(agg_df))
-  
-  if (total.mean==FALSE){
-    return(agg_df)
-  } else {
-    totalmean<-apply(agg_df, 1, mean)
-    agg_df<-cbind(totalmean, agg_df)
-    return(agg_df)
+  if (only.promoter==FALSE) {
+    #make GRanges from annotation
+    genes$start_position<-genes$start_position-3000
+    colnames(genes) <- c("chr","start", "end", "GeneSymbol")
+    genes_GR <- makeGRangesFromDataFrame(genes,keep.extra.columns = TRUE)
+    
+    #make GRanges object from the tibble
+    df_GR <- makeGRangesFromDataFrame(genes.info_df[,c(1,2,3)])#we only take chr, start and end to do the overlap
+    
+    #overlap the annotation with the cpgs
+    hits <- findOverlaps(df_GR,genes_GR, type="within") #hits found
+    
+    cat("\nCreating data frame of useful and annotated cpgs.\n")
+    
+    df_ann <- cbind(genes.info_df[queryHits(hits),],genes[subjectHits(hits),])
+    drops <- c("chr","start","end","gene_name","position_to_TSS")
+    clean_df<-df_ann[ , !(names(df_ann) %in% drops)]
+    
+    
+    
+    
+    
+    
+    clean_df<-clean_df[moveme(names(clean_df), "GeneSymbol first")]
+    
+    ########################################################
+    #4. Agregation of beta value means
+    ########################################################
+    
+    cat("\nAggregating cpg values by gene.\n")
+    
+    mean.na<-function(x){
+      mean(x, na.rm = TRUE)
+    }
+    
+    agg_df <- aggregate(x = clean_df[2:ncol(clean_df)], 
+                        by = list(clean_df$GeneSymbol), 
+                        FUN = mean.na)
+    
+    agg_df<-na.omit(agg_df)
+    rownames(agg_df)<-agg_df$Group.1
+    drops <- "Group.1"
+    agg_df<-agg_df[ , !(names(agg_df) %in% drops)]
+    colnames(agg_df)<-gsub("\\.","-", colnames(agg_df))
+    
+    if (total.mean==FALSE){
+      return(agg_df)
+    } else {
+      totalmean<-apply(agg_df, 1, mean)
+      agg_df<-cbind(totalmean, agg_df)
+      return(agg_df)
+    }
+    
   }
   
-}
-
+  }
+  
+  
 
 ########################################################
 #Testing the function

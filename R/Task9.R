@@ -97,6 +97,8 @@ task9<-function(MFA6, DIABLO7){
   ############################################################################################
 
   # Remove version from gene IDs
+  DIABLO7[[1]]$Genes <- as.vector(DIABLO7[[1]]$Genes)
+  DIABLO7[[2]]$Genes <- as.vector(DIABLO7[[2]]$Genes)
   DIABLO7_genes <- c(DIABLO7[[1]]$Genes, DIABLO7[[2]]$Genes)
   DIABLO7_genes_nv <- gsub('.{2}$', '', DIABLO7_genes)
   
